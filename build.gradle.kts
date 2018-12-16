@@ -8,11 +8,10 @@ plugins {
 }
 
 group = "com.github.oowekyala"
-version = "1.0-SNAPSHOT"
+version = "1.0"
 
 
 repositories {
-    mavenCentral()
     jcenter()
 }
 
@@ -85,9 +84,7 @@ with(project.extensions) {
 
         repositories {
             //            mavenCentral()
-            maven {
-                url = uri("$buildDir/repository")
-            }
+            mavenLocal()
         }
     }
 }
