@@ -46,6 +46,27 @@ class DslTest : FunSpec({
         }
     }
 
+    test("fromChild should return correctly") {
+        parseStatement("int i = 0;") should matchNode<ASTLocalVariableDeclaration> {
+
+            unspecifiedChild()
+
+            val name = fromChild<ASTVariableDeclarator, String> {
+                val myName = fromChild<ASTVariableDeclaratorId, String> {
+
+                    it.image
+                }
+
+                unspecifiedChild()
+
+                myName
+            }
+
+            name shouldBe "i"
+
+        }
+    }
+
     failureTest("Unspecified children should be counted in the number of expected children",
             messageContains = setOf("number of children", "expected 3", "actual 2")) {
 

@@ -11,6 +11,9 @@ import kotlin.test.assertTrue
  */
 private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
 
+@DslMarker
+annotation class TreeDslMarker
+
 /**
  * Wraps a node, providing easy access to [it]. Additional matching
  * methods are provided to match children. This DSL supports objects
@@ -63,14 +66,14 @@ private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
  *    // on the node that is supposed to verify them, so if it needs some
  *    // value from its children, you can go fetch that value in two ways:
  *    // * if you just need the child node, the child method already returns that
- *    // * if you need some more complex value, or to return some subchild, use childRet
+ *    // * if you need some more complex value, or to return some subchild, use fromChild
  *
  *    catchStmt should matchNode<ASTCatchStatement> {
  *       it.isMulticatchStatement shouldBe true
  *
- *       // The childRet method is a variant of child which can return anything.
+ *       // The fromChild method is a variant of child which can return anything.
  *       // Specify the return type as a type parameter
- *       val types = childRet<ASTFormalParameter, List<ASTType>> {
+ *       val types = fromChild<ASTFormalParameter, List<ASTType>> {
  *
  *           // The child method returns the child (strongly typed)
  *           val ioe = child<ASTType>(ignoreChildren = true) {
@@ -83,8 +86,8 @@ private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
  *
  *           unspecifiedChild()
  *
- *           // You have to use the annotated return type syntax
- *           return@childRet listOf(ioe, aerr)
+ *           // The last expression of the lambda is returned from fromChild
+ *           listOf(ioe, aerr)
  *       }
  *
  *       // Here you can use the returned value to perform more assertions*
@@ -108,6 +111,7 @@ private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
  * @param H Hierarchy of the node
  * @param N Type of the node
  */
+@TreeDslMarker
 class TreeNodeWrapper<H : Any, N : H> private constructor(
     val it: N,
     private val adapter: TreeLikeAdapter<H>,
@@ -202,7 +206,7 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
      * @throws AssertionError If the child is not of type [M], or fails the assertions of the [nodeSpec]
      * @return The return value of the lambda
      */
-    inline fun <reified M : H, R> childRet(
+    inline fun <reified M : H, R> fromChild(
         ignoreChildren: Boolean = false,
         noinline nodeSpec: TreeNodeWrapper<H, M>.() -> R
     ): R =
