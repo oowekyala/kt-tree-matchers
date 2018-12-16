@@ -131,3 +131,8 @@ gradle-app.setting
 **/build/
 
 # End of https://www.gitignore.io/api/gradle
+gradle.properties
+Supprimerait src/main/java/
+Supprimerait src/main/resources/
+Supprimerait src/test/java/
+Supprimerait src/test/resources/
