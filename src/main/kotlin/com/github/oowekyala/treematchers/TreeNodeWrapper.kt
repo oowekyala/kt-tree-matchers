@@ -3,7 +3,13 @@ package com.github.oowekyala.treematchers
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-typealias MatcherPath<H> = List<NWrapper<H, out H>>
+/**
+ * Sequence of parents of an [TreeNodeWrapper]. Used for
+ * error messages.
+ *
+ * @param H Hierarchy of the node
+ */
+private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
 
 /**
  * Wraps a node, providing easy access to [it]. Additional matching
@@ -11,8 +17,90 @@ typealias MatcherPath<H> = List<NWrapper<H, out H>>
  * of any type provided they can be viewed as nodes of a tree. The
  * [TreeLikeAdapter] type class witnesses this property.
  *
+ * ### Samples
  *
- * @property it         Wrapped node
+ * These samples assume you use [kotlintest](https://github.com/kotlintest/kotlintest),
+ * and implemented a `matchNode` method like explained on [baseShouldMatchSubtree].
+ * The only difference if you don't use kotlintest are the `should` and `shouldBe` calls.
+ *
+ *    node should matchNode<ASTStatement> {
+ *
+ *        // nesting matchers allow to specify a whole subtree
+ *        child<ASTForStatement> {
+ *
+ *            // This would fail if the first child of the ForStatement wasn't a ForInit
+ *            child<ASTForInit> {
+ *                child<ASTLocalVariableDeclaration> {
+ *
+ *                    // If the parameter ignoreChildren is set to true, the number of children is not asserted
+ *                    // Calls to "child" in the block are forbidden
+ *                    // The only checks carried out here are the type test and the assertions of the block
+ *                    child<ASTType>(ignoreChildren = true) {
+ *
+ *                        // In a "child" block, the tested node can be referred to as "it"
+ *                        // Here, its static type is ASTType, so we can inspect properties
+ *                        // of the node and make assertions
+ *
+ *                        it.typeImage shouldBe "int"
+ *                        it.type shouldNotBe null
+ *                    }
+ *
+ *                    // We don't care about that node, we only care that there is "some" node
+ *                    unspecifiedChild()
+ *                }
+ *            }
+ *
+ *            // The subtree is ignored, but we check a ForUpdate is present at this child position
+ *            child<ASTForUpdate>(ignoreChildren = true) {}
+ *
+ *            // Here, ignoreChildren is not specified and takes its default value of false.
+ *            // The lambda has no "child" calls and the node will be asserted to have no children
+ *            child<ASTBlock> {}
+ *        }
+ *    }
+ *
+ *    // To get good error messages, it's important to define assertions
+ *    // on the node that is supposed to verify them, so if it needs some
+ *    // value from its children, you can go fetch that value in two ways:
+ *    // * if you just need the child node, the child method already returns that
+ *    // * if you need some more complex value, or to return some subchild, use childRet
+ *
+ *    catchStmt should matchNode<ASTCatchStatement> {
+ *       it.isMulticatchStatement shouldBe true
+ *
+ *       // The childRet method is a variant of child which can return anything.
+ *       // Specify the return type as a type parameter
+ *       val types = childRet<ASTFormalParameter, List<ASTType>> {
+ *
+ *           // The child method returns the child (strongly typed)
+ *           val ioe = child<ASTType>(ignoreChildren = true) {
+ *               it.type shouldBe IOException::class.java
+ *           }
+ *
+ *           val aerr = child<ASTType>(ignoreChildren = true) {
+ *               it.type shouldBe java.lang.AssertionError::class.java
+ *           }
+ *
+ *           unspecifiedChild()
+ *
+ *           // You have to use the annotated return type syntax
+ *           return@childRet listOf(ioe, aerr)
+ *       }
+ *
+ *       // Here you can use the returned value to perform more assertions*
+ *
+ *       it.caughtExceptionTypeNodes.shouldContainExactly(types)
+ *       it.caughtExceptionTypes.shouldContainExactly(types.map { it.type })
+ *
+ *       it.exceptionName shouldBe "e"
+ *
+ *       child<ASTBlock> { }
+ *    }
+ *
+ *
+ *
+ *
+ * @property it         The node being matched
  * @param adapter       Instance of the [TreeLikeAdapter] type class for the [H] type hierarchy
  * @param parentPath    List of the parents of this node, (not including the self), used to reconstruct a path for error messages
  * @param childMatchersAreIgnored Ignore calls to [child]
@@ -20,7 +108,7 @@ typealias MatcherPath<H> = List<NWrapper<H, out H>>
  * @param H Hierarchy of the node
  * @param N Type of the node
  */
-class NWrapper<H : Any, N : H> private constructor(
+class TreeNodeWrapper<H : Any, N : H> private constructor(
     val it: N,
     private val adapter: TreeLikeAdapter<H>,
     private val parentPath: MatcherPath<H>,
@@ -89,7 +177,10 @@ class NWrapper<H : Any, N : H> private constructor(
      * @throws AssertionError If the child is not of type [M], or fails the assertions of the [nodeSpec]
      * @return The child, if it passes all assertions, otherwise throws an exception
      */
-    inline fun <reified M : H> child(ignoreChildren: Boolean = false, noinline nodeSpec: NWrapper<H, M>.() -> Unit): M =
+    inline fun <reified M : H> child(
+        ignoreChildren: Boolean = false,
+        noinline nodeSpec: TreeNodeWrapper<H, M>.() -> Unit
+    ): M =
         childImpl(ignoreChildren, M::class.java) { nodeSpec(); it }
 
     /**
@@ -113,7 +204,7 @@ class NWrapper<H : Any, N : H> private constructor(
      */
     inline fun <reified M : H, R> childRet(
         ignoreChildren: Boolean = false,
-        noinline nodeSpec: NWrapper<H, M>.() -> R
+        noinline nodeSpec: TreeNodeWrapper<H, M>.() -> R
     ): R =
         childImpl(ignoreChildren, M::class.java, nodeSpec)
 
@@ -121,7 +212,7 @@ class NWrapper<H : Any, N : H> private constructor(
     internal fun <M : H, R> childImpl(
         ignoreChildren: Boolean,
         childType: Class<M>,
-        nodeSpec: NWrapper<H, M>.() -> R
+        nodeSpec: TreeNodeWrapper<H, M>.() -> R
     ): R {
         if (!childMatchersAreIgnored)
             return executeWrapper(adapter, childType, shiftChild(), pathToMe, ignoreChildren, nodeSpec)
@@ -135,6 +226,9 @@ class NWrapper<H : Any, N : H> private constructor(
             )
     }
 
+    /**
+     * @suppress
+     */
     override fun toString(): String {
         return "NWrapper<${adapter.nodeName(it::class.java)}>"
     }
@@ -174,13 +268,14 @@ class NWrapper<H : Any, N : H> private constructor(
          * @return [toWrap], if it passes all assertions, otherwise throws an exception
          */
         @PublishedApi
+        @JvmSynthetic
         internal fun <H : Any, M : H, R> executeWrapper(
             adapter: TreeLikeAdapter<H>,
             childType: Class<M>,
             toWrap: H,
             parentPath: MatcherPath<H>,
             ignoreChildrenMatchers: Boolean,
-            spec: NWrapper<H, M>.() -> R
+            spec: TreeNodeWrapper<H, M>.() -> R
         ): R {
 
             val nodeNameForMsg = when {
@@ -203,7 +298,7 @@ class NWrapper<H : Any, N : H> private constructor(
             @Suppress("UNCHECKED_CAST")
             val m = toWrap as M
 
-            val wrapper = NWrapper(m, adapter, parentPath, ignoreChildrenMatchers)
+            val wrapper = TreeNodeWrapper(m, adapter, parentPath, ignoreChildrenMatchers)
 
             val ret: R = try {
                 wrapper.spec()
@@ -236,53 +331,87 @@ class NWrapper<H : Any, N : H> private constructor(
 
 
 /**
- * Executes the given node spec on this node. The [adapter] and [H] type parameter
- * should be hidden away behind a concrete method adapted to your use case.
+ * Base method to assert that a node of a hierarchy [H] matches the subtree
+ * specified by [nodeSpec]. The [receiver][this] is first asserted not to be null, then
+ * is fed to the assertions contained in [nodeSpec].
+ *
+ * ### Adapting this method to your use case
+ *
+ * The [H] type parameter and the [adapter] are unnecessary when the domain is known, so concrete DSLs
+ * should provide their own method that delegates to this one and provides the adapter.
  *
  * For example, if your tree type hierarchy is topped by a class named `Node`, and you implemented
  * [TreeLikeAdapter]<Node> on an object `NodeTreeLikeAdapter`, then you could provide the following
- * shorthand to remove the boilerplate parameter:
+ * shorthand to remove the boilerplate parameters:
  *
- *     inline fun <reified N : Node> executeNodeSpec(ignoreChildren: Boolean = false,
- *                                                   noinline nodeSpec: NWrapper<Node, N>.() -> Unit) =
- *         executeNodeSpec(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
+ *     inline fun <reified N : Node> Node?.shouldMatchNode(ignoreChildren: Boolean = false,
+ *                                                        noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit) =
+ *         this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
+ *
+ *
  *
  * Which would allow you to call it like the following:
  *
- *     someNode.executeNodeSpec<SomeNodeType> {
+ *     someNode.shouldMatchNode<SomeNodeType> {
  *          child<SomeOtherNodeType> {
  *              ...
  *          }
  *          ...
  *     }
  *
+ * #### Using [kotlintest](https://github.com/kotlintest/kotlintest)
  *
+ * To play well with [kotlintest](https://github.com/kotlintest/kotlintest)'s `should` dsl,
+ * you can also implement a function returning another function of type `(H?) -> Unit` instead.
+ * For example:
+ *
+ *     inline fun <reified N : Node> matchNode(ignoreChildren: Boolean = false,
+ *                                             noinline nodeSpec: NWrapper<Node, N>.() -> Unit)
+ *                                             : (H?) -> Unit  = {
+ *                                                 it.shouldMatchNode(ignoreChildren, nodeSpec)
+ *                                             }
+ *
+ * Which would allow you to call it like the following:
+ *
+ *      node should matchNode<ASTExpression> {
+ *          ...
+ *      }
+ *
+ * ### Samples
+ *
+ * See [TreeNodeWrapper]
  *
  * @param H Considered hierarchy
  * @param N Expected type of the node
  *
+ * @receiver The node that will be matched against the [nodeSpec]
+ *
  * @param adapter Instance of the [TreeLikeAdapter] type class for the [H] hierarchy
  *
- * @param ignoreChildren If true, calls to [NWrapper.child] in the [nodeSpec] are forbidden.
+ * @param ignoreChildren If true, calls to [TreeNodeWrapper.child] in the [nodeSpec] are forbidden.
  *                       The number of children of the child is not asserted.
  *
- * @param nodeSpec Sequence of assertions to carry out on the node, which can be referred to by [NWrapper.it].
- *                 Assertions may consist of [NWrapper.child] calls, which perform the same type of node
- *                 matching on a child of the tested node.
+ * @param nodeSpec Sequence of assertions to carry out on the node, which can be referred to by [TreeNodeWrapper.it].
+ *                 Assertions may consist of [TreeNodeWrapper.child] calls, which perform the same type of node
+ *                 matching on a child of the tested node, or regular assertions on [TreeNodeWrapper.it].
  *
  * @throws AssertionError If one of the assertions is violated, e.g. a node is not of the expected type,
  *                        a child doesn't exist, etc.
  *
  */
-inline fun <H : Any, reified N : H> H.executeNodeSpec(
+inline fun <H : Any, reified N : H> H?.baseShouldMatchSubtree(
     adapter: TreeLikeAdapter<H>,
     ignoreChildren: Boolean = false,
-    noinline nodeSpec: NWrapper<H, N>.() -> Unit
+    noinline nodeSpec: TreeNodeWrapper<H, N>.() -> Unit
 ) {
-    NWrapper.executeWrapper(
+    assertFalse("Expected node of type ${adapter.nodeName(N::class.java)}, but was null") {
+        this == null
+    }
+
+    TreeNodeWrapper.executeWrapper(
         adapter,
         N::class.java,
-        this,
+        this!!,
         emptyList(),
         ignoreChildren,
         nodeSpec

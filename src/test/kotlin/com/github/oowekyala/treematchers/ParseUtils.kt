@@ -8,7 +8,6 @@ import net.sourceforge.pmd.lang.java.ast.ASTCompilationUnit
 import java.io.StringReader
 
 
-// These could be used directly by the pmd-java test module
 
 fun parseStatement(statement: String): Node {
 
@@ -36,9 +35,8 @@ object NodeTreeLikeAdapter : TreeLikeAdapter<Node> {
 
 inline fun <reified N : Node> matchNode(
     ignoreChildren: Boolean = false,
-    noinline nodeSpec: NWrapper<Node, N>.() -> Unit
-) =
-    baseMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
+    noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit
+): (Node?) -> Unit = { it.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec) }
 
 
 fun parseCompilationUnit(sourceCode: String): ASTCompilationUnit {

@@ -17,13 +17,16 @@ repositories {
 
 dependencies {
 
-    compile(kotlin("stdlib-jdk8"))
+    compile(kotlin("stdlib-jdk7"))
     compile(kotlin("test"))
-    compile("io.kotlintest:kotlintest-runner-junit5:3.1.10")
 
+    // test use case
     testCompile("net.sourceforge.pmd:pmd-java:6.6.0")
 
+    testImplementation("io.kotlintest:kotlintest-runner-junit5:3.1.11")
 }
+
+
 
 tasks {
 
@@ -32,4 +35,7 @@ tasks {
         outputDirectory = "$buildDir/javadoc"
     }
 
+    getByName<Test>("test") {
+        useJUnitPlatform { }
+    }
 }

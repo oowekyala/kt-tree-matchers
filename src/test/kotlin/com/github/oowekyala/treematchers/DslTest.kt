@@ -5,7 +5,6 @@ import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import net.sourceforge.pmd.lang.java.ast.*
 
-
 class DslTest : FunSpec({
 
     failureTest("Empty matcher spec should check the number of children",
@@ -48,7 +47,7 @@ class DslTest : FunSpec({
     }
 
     failureTest("Unspecified children should be counted in the number of expected children",
-            messageContains = setOf("#2 doesn't exist")) {
+            messageContains = setOf("number of children", "expected 3", "actual 2")) {
 
         parseStatement("int i = 0;") should matchNode<ASTLocalVariableDeclaration> {
             unspecifiedChildren(3)
@@ -130,7 +129,6 @@ class DslTest : FunSpec({
             unspecifiedChild()
         }
     }
-
 
 })
 
