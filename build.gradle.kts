@@ -33,6 +33,8 @@ tasks {
     getByName<DokkaTask>("dokka") {
         outputFormat = "html"
         outputDirectory = "$buildDir/javadoc"
+
+        includes += "dokka.md"
     }
 
     getByName<Test>("test") {
