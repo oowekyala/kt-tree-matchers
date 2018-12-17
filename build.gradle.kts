@@ -1,8 +1,10 @@
 import org.jetbrains.dokka.gradle.DokkaTask
+import java.util.Date
 
 plugins {
     kotlin("jvm") version "1.2.41"
     id("org.jetbrains.dokka") version "0.9.17"
+    id("io.codearte.nexus-staging") version "0.11.0"
     `maven-publish`
     signing
 }
@@ -85,6 +87,14 @@ tasks {
                         developerConnection("scm:https://github.com/oowekyala/kt-tree-matchers.git")
                     }
 
+                    licenses {
+                        license {
+                            name("The Unlicense")
+                            url("http://unlicense.org/UNLICENSE")
+                            distribution("repo")
+                        }
+                    }
+
                     developers {
                         developer {
                             id("oowekyala")
@@ -98,8 +108,25 @@ tasks {
 
 
         repositories {
-            //            mavenCentral()
-            mavenLocal()
+            maven {
+                val myUrl =
+                        if (version.toString().endsWith("-SNAPSHOT"))
+                            "https://oss.sonatype.org/content/repositories/snapshots"
+                        else
+                            "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+
+                url = uri(myUrl)
+
+                credentials {
+                    username = property("nexusUsername").toString()
+                    password = property("nexusPassword").toString()
+                }
+            }
         }
+    }
+
+
+    signing {
+        sign(publishing.publications["default"])
     }
 }
