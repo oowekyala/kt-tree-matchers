@@ -1,8 +1,8 @@
 # Kotlin Tree Matchers
 
 This is a lightweight testing DSL to assert that a tree conforms to an
-expected structure. It's focus is to maximise readability and provide
-good error messages. It supports any tree-like structure, you just have
+expected structure. Its focus is to maximise readability and provide
+detailed error messages. It supports any tree-like structure, you just have
 to plug in an adapter.
 
 Jump to the [Setup](#setup) section or take a look at the samples below.
@@ -52,6 +52,8 @@ node should matchNode<ASTStatement> {
 ```
 
 
+See also the docs.
+
 ## Setup
 
 
@@ -77,22 +79,23 @@ Here it is in code:
 ```kotlin
 
 object NodeTreeLikeAdapter : TreeLikeAdapter<Node> {
-    override fun getChildren(node: Node): List<Node> = node.findChildrenOfType(Node::class.java)
-
-    override fun nodeName(type: Class<out Node>): String = type.simpleName.removePrefix("AST")
+    override fun getChildren(node: Node): List<Node> = /* implementation */
 }
 
 
-// This can be used with plain kotlin: someNode.shouldMatchNode<Foo> { ... }
-inline fun <reified N : Node> Node?.shouldMatchNode(ignoreChildren: Boolean = false,
-                                                    noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit) =
-     this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
+typealias NodeSpec<N> = TreeNodeWrapper<Node, N>.() -> Unit
+
+// This can be used with plain kotlin.test : someNode.shouldMatchNode<Foo> { ... }
+inline fun <reified N : Node> Node?.shouldMatchNode(
+                                        ignoreChildren: Boolean = false,
+                                        noinline nodeSpec: NodeSpec<N>
+                                    ) = this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
 
 // This can be used with kotlintest's "someNode should matchNode<Foo> { ... }"
 inline fun <reified N : Node> matchNode(
-                                ignoreChildren: Boolean = false,
-                                noinline nodeSpec: NWrapper<Node, N>.() -> Unit
-                             ) : (H?) -> Unit = { it.shouldMatchNode(ignoreChildren, nodeSpec) }
+                                    ignoreChildren: Boolean = false,
+                                    noinline nodeSpec: NodeSpec<N>
+                              ) : (Node?) -> Unit = { it.shouldMatchNode(ignoreChildren, nodeSpec) }
 
 ```
 

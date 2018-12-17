@@ -346,7 +346,7 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  * shorthand to remove the boilerplate parameters:
  *
  *     inline fun <reified N : Node> Node?.shouldMatchNode(ignoreChildren: Boolean = false,
- *                                                        noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit) =
+ *                                                         noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit) =
  *         this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
  *
  *
@@ -363,12 +363,12 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  * #### Using [kotlintest](https://github.com/kotlintest/kotlintest)
  *
  * To play well with [kotlintest](https://github.com/kotlintest/kotlintest)'s `should` dsl,
- * you can also implement a function returning another function of type `(H?) -> Unit` instead.
+ * you can also implement a function returning another function of type `(Node?) -> Unit` instead.
  * For example:
  *
  *     inline fun <reified N : Node> matchNode(ignoreChildren: Boolean = false,
  *                                             noinline nodeSpec: NWrapper<Node, N>.() -> Unit)
- *                                             : (H?) -> Unit  = {
+ *                                             : (Node?) -> Unit  = {
  *                                                 it.shouldMatchNode(ignoreChildren, nodeSpec)
  *                                             }
  *

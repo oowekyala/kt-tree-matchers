@@ -21,8 +21,9 @@ interface TreeLikeAdapter<H : Any> {
 
     /**
      * Gets the display name of this [type] of node. This is used
-     * for error messages.
+     * for error messages. Override if it's different from the simple
+     * name of the class.
      */
-    fun nodeName(type: Class<out H>): String
+    fun nodeName(type: Class<out H>): String = type.simpleName
 
 }
