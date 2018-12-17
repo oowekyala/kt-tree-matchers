@@ -1,7 +1,9 @@
-# Kotlin Tree Matchers
+[![](https://img.shields.io/maven-central/v/com.github.oowekyala/kt-tree-matchers.svg)](https://search.maven.org/artifact/com.github.oowekyala/kt-tree-matchers/1.0/jar)
+
+# Tree Matchers for Kotlin tests
 
 This is a lightweight testing DSL to assert that a tree conforms to an
-expected structure. It's focus is to maximise readability and provide
+expected structure. Its focus is to maximise readability and provide
 good error messages. It supports any tree-like structure, you just have
 to plug in an adapter.
 
@@ -54,15 +56,27 @@ node should matchNode<ASTStatement> {
 
 ## Setup
 
-
-
 ### Maven
 
-TODO
+```xml
+<dependency>
+  <groupId>com.github.oowekyala</groupId>
+  <artifactId>kt-tree-matchers</artifactId>
+  <version>1.0</version>
+</dependency>
+```
 
 ### Gradle
 
-TODO
+```groovy
+   implementation 'com.github.oowekyala:kt-tree-matchers:1.0'
+```
+
+or with the Kotlin DSL:
+
+```kotlin
+   implementation("com.github.oowekyala:kt-tree-matchers:1.0")
+```
 
 ### Provide an adapter
 
@@ -96,5 +110,4 @@ inline fun <reified N : Node> matchNode(
 
 ```
 
-
-Happy testing!
+More complete documentation can be found in the Kotlin docs of the project. Happy testing!
