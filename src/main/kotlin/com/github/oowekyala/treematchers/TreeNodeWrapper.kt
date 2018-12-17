@@ -11,8 +11,6 @@ import kotlin.test.assertTrue
  */
 private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
 
-@DslMarker
-annotation class TreeDslMarker
 
 /**
  * Wraps a node, providing easy access to [it]. Additional matching
@@ -111,7 +109,6 @@ annotation class TreeDslMarker
  * @param H Hierarchy of the node
  * @param N Type of the node
  */
-@TreeDslMarker
 class TreeNodeWrapper<H : Any, N : H> private constructor(
     val it: N,
     private val adapter: TreeLikeAdapter<H>,
