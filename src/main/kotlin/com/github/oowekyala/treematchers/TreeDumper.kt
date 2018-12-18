@@ -15,7 +15,6 @@ open class TreeDumper<H : Any>(
         /** Size of each indent level. */
         protected val indentSize: Int = 4
 ) {
-
     /**
      * Returns a list of strings that will be added to the nodeSpec dump of [node].
      * E.g. if [node] has the properties `prefix` and `suffix`,
@@ -153,4 +152,16 @@ open class TreeDumper<H : Any>(
 
     private fun StringBuilder.appendNewLine(currentIndent: Int): StringBuilder =
             append("\n").append(" ".repeat(currentIndent))
+}
+
+/**
+ * A config object that decides how to format tree dumps on error messages.
+ */
+data class DumpConfig<H : Any>(val treeDumper: TreeDumper<H>, val maxDumpDepth: Int = -1) {
+
+    fun dumpSubtree(node: H) = treeDumper.dumpSubtree(node, maxDumpDepth)
+
+    companion object {
+        fun <H : Any> default(adapter: TreeLikeAdapter<H>) = DumpConfig(TreeDumper(adapter))
+    }
 }

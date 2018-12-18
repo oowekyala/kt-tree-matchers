@@ -24,12 +24,6 @@ interface TreeLikeAdapter<H : Any> {
      * for error messages. Override if it's different from the simple
      * name of the class.
      */
-    fun nodeName(type: Class<out H>): String = type.simpleName
-
-    /**
-     * Gets the dumper used to dump nodes to error messages if needed.
-     */
-    val treeDumper: TreeDumper<H>
-        get() = TreeDumper(this)
+    fun nodeName(type: @JvmWildcard Class<out H>): String = type.simpleName
 
 }

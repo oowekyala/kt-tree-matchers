@@ -89,7 +89,7 @@ typealias NodeSpec<N> = TreeNodeWrapper<Node, N>.() -> Unit
 inline fun <reified N : Node> Node?.shouldMatchNode(
                                         ignoreChildren: Boolean = false,
                                         noinline nodeSpec: NodeSpec<N>
-                                    ) = this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
+                                    ) = this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec = nodeSpec)
 
 // This can be used with kotlintest's "someNode should matchNode<Foo> { ... }"
 inline fun <reified N : Node> matchNode(

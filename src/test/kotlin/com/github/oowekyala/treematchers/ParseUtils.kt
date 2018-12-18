@@ -36,7 +36,7 @@ object NodeTreeLikeAdapter : TreeLikeAdapter<Node> {
 inline fun <reified N : Node> matchNode(
     ignoreChildren: Boolean = false,
     noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit
-): (Node?) -> Unit = { it.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec) }
+): (Node?) -> Unit = { it.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec = nodeSpec) }
 
 
 fun parseCompilationUnit(sourceCode: String): ASTCompilationUnit {

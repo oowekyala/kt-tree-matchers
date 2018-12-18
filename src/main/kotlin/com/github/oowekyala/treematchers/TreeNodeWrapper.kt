@@ -11,7 +11,6 @@ import kotlin.test.assertTrue
  */
 private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
 
-
 /**
  * Wraps a node, providing easy access to [it]. Additional matching
  * methods are provided to match children. This DSL supports objects
@@ -102,22 +101,26 @@ private typealias MatcherPath<H> = List<TreeNodeWrapper<H, out H>>
  *
  *
  * @property it         The node being matched
- * @param adapter       Instance of the [TreeLikeAdapter] type class for the [H] type hierarchy
- * @param parentPath    List of the parents of this node, (not including the self), used to reconstruct a path for error messages
- * @param childMatchersAreIgnored Ignore calls to [child]
+ *
+ * @constructor
+ * @param it            The node being matched
+ * @param myAdapter     Instance of the [TreeLikeAdapter] type class for the [H] type hierarchy
+ * @param myParentPath  List of the parents of this node, (not including the self), used to reconstruct a path for error messages
+ * @param myChildMatchersAreIgnored Ignore calls to [child]
  *
  * @param H Hierarchy of the node
  * @param N Type of the node
  */
 class TreeNodeWrapper<H : Any, N : H> private constructor(
-    val it: N,
-    private val adapter: TreeLikeAdapter<H>,
-    private val parentPath: MatcherPath<H>,
-    private val childMatchersAreIgnored: Boolean
+        val it: N,
+        private val myAdapter: TreeLikeAdapter<H>,
+        private val myParentPath: MatcherPath<H>,
+        private val myChildMatchersAreIgnored: Boolean,
+        private val myErrorDumper: DumpConfig<H>?
 ) {
 
-    private val myChildren = adapter.getChildren(it)
-    private val pathToMe = parentPath + this
+    private val myChildren = myAdapter.getChildren(it)
+    private val pathToMe = myParentPath + this
     private val myNumChildren = myChildren.size
 
     /** Index to which the next child matcher will apply. */
@@ -134,15 +137,16 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
     }
 
     private fun checkChildExists(childIdx: Int) =
-        assertTrue(
-            formatErrorMessage(
-                adapter,
-                parentPath,
-                "Node has fewer children than expected, child #$childIdx doesn't exist"
-            )
-        ) {
-            childIdx in 0..myChildren.size
-        }
+            assertTrue(
+                    formatErrorMessage(
+                            myAdapter,
+                            myParentPath,
+                            myErrorDumper,
+                            "Node has fewer children than expected, child #$childIdx doesn't exist"
+                    )
+            ) {
+                childIdx in 0..myChildren.size
+            }
 
     /**
      * Specify that the next [num] children will only be tested for existence,
@@ -179,10 +183,10 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
      * @return The child, if it passes all assertions, otherwise throws an exception
      */
     inline fun <reified M : H> child(
-        ignoreChildren: Boolean = false,
-        noinline nodeSpec: TreeNodeWrapper<H, M>.() -> Unit
+            ignoreChildren: Boolean = false,
+            noinline nodeSpec: TreeNodeWrapper<H, M>.() -> Unit
     ): M =
-        childImpl(ignoreChildren, M::class.java) { nodeSpec(); it }
+            childImpl(ignoreChildren, M::class.java) { nodeSpec(); it }
 
     /**
      * Specify that the next child will be tested against the assertions
@@ -204,26 +208,27 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
      * @return The return value of the lambda
      */
     inline fun <reified M : H, R> fromChild(
-        ignoreChildren: Boolean = false,
-        noinline nodeSpec: TreeNodeWrapper<H, M>.() -> R
+            ignoreChildren: Boolean = false,
+            noinline nodeSpec: TreeNodeWrapper<H, M>.() -> R
     ): R =
-        childImpl(ignoreChildren, M::class.java, nodeSpec)
+            childImpl(ignoreChildren, M::class.java, nodeSpec)
 
     @PublishedApi
     internal fun <M : H, R> childImpl(
-        ignoreChildren: Boolean,
-        childType: Class<M>,
-        nodeSpec: TreeNodeWrapper<H, M>.() -> R
+            ignoreChildren: Boolean,
+            childType: Class<M>,
+            nodeSpec: TreeNodeWrapper<H, M>.() -> R
     ): R {
-        if (!childMatchersAreIgnored)
-            return executeWrapper(adapter, childType, shiftChild(), pathToMe, ignoreChildren, nodeSpec)
+        if (!myChildMatchersAreIgnored)
+            return executeWrapper(myAdapter, childType, shiftChild(), pathToMe, ignoreChildren, myErrorDumper, nodeSpec)
         else
             throw IllegalStateException(
-                formatErrorMessage(
-                    adapter,
-                    pathToMe,
-                    "Calling child when ignoreChildren=true is forbidden"
-                )
+                    formatErrorMessage(
+                            myAdapter,
+                            pathToMe,
+                            myErrorDumper,
+                            "Calling child when ignoreChildren=true is forbidden"
+                    )
             )
     }
 
@@ -231,26 +236,31 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
      * @suppress
      */
     override fun toString(): String {
-        return "NWrapper<${adapter.nodeName(it::class.java)}>"
+        return "NWrapper<${myAdapter.nodeName(it::class.java)}>"
     }
 
     @PublishedApi
     internal companion object {
 
         private fun <H : Any> formatPath(adapter: TreeLikeAdapter<H>, matcherPath: MatcherPath<H>) =
-            when {
-                matcherPath.isEmpty() -> "<root>"
-                else -> matcherPath.joinToString(separator = "/", prefix = "/") {
-                    adapter.nodeName(it.it)
+                when {
+                    matcherPath.isEmpty() -> "<root>"
+                    else -> matcherPath.joinToString(separator = "/", prefix = "/") {
+                        adapter.nodeName(it.it)
+                    }
                 }
-            }
 
         private fun <H : Any> formatErrorMessage(
-            adapter: TreeLikeAdapter<H>,
-            matcherPath: MatcherPath<H>,
-            message: String
+                adapter: TreeLikeAdapter<H>,
+                matcherPath: MatcherPath<H>,
+                errorDumper: DumpConfig<H>?,
+                message: String
         ) =
-            "At ${formatPath(adapter, matcherPath)}: $message"
+                "At ${formatPath(adapter, matcherPath)}: $message".plus(
+                        if (errorDumper != null && matcherPath.isNotEmpty()) {
+                            errorDumper.dumpSubtree(matcherPath.last().it)
+                        } else ""
+                )
 
         /**
          * Execute wrapper assertions on a node.
@@ -269,29 +279,32 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
          * @return [toWrap], if it passes all assertions, otherwise throws an exception
          */
         @PublishedApi
-        @JvmSynthetic
         internal fun <H : Any, M : H, R> executeWrapper(
-            adapter: TreeLikeAdapter<H>,
-            childType: Class<M>,
-            toWrap: H,
-            parentPath: MatcherPath<H>,
-            ignoreChildrenMatchers: Boolean,
-            spec: TreeNodeWrapper<H, M>.() -> R
+                adapter: TreeLikeAdapter<H>,
+                childType: Class<M>,
+                toWrap: H,
+                parentPath: MatcherPath<H>,
+                ignoreChildrenMatchers: Boolean,
+                errorDumper: DumpConfig<H>?,
+                spec: TreeNodeWrapper<H, M>.() -> R
         ): R {
 
+            val isRoot = parentPath.isEmpty()
+
             val nodeNameForMsg = when {
-                parentPath.isEmpty() -> "root"
+                isRoot -> "root"
                 else -> "child #${parentPath.last().myChildren.indexOf(toWrap)}"
             }
 
             assertTrue(
-                formatErrorMessage(
-                    adapter,
-                    parentPath,
-                    "Expected $nodeNameForMsg to have type ${adapter.nodeName(childType)}, actual ${adapter.nodeName(
-                        toWrap.javaClass
-                    )}"
-                )
+                    formatErrorMessage(
+                            adapter,
+                            parentPath,
+                            errorDumper,
+                            "Expected $nodeNameForMsg to have type ${adapter.nodeName(childType)}, actual ${adapter.nodeName(
+                                    toWrap.javaClass
+                            )}"
+                    )
             ) {
                 childType.isInstance(toWrap)
             }
@@ -299,7 +312,7 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
             @Suppress("UNCHECKED_CAST")
             val m = toWrap as M
 
-            val wrapper = TreeNodeWrapper(m, adapter, parentPath, ignoreChildrenMatchers)
+            val wrapper = TreeNodeWrapper(m, adapter, parentPath, ignoreChildrenMatchers, errorDumper)
 
             val ret: R = try {
                 wrapper.spec()
@@ -307,21 +320,22 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
                 if (e.message?.matches("At (/.*?|<root>):.*".toRegex()) == false) {
                     // the exception has no path, let's add one
                     throw AssertionError(
-                        formatErrorMessage(
-                            adapter, wrapper.pathToMe, e.message
-                                ?: "No explanation provided"
-                        ), e
+                            formatErrorMessage(
+                                    adapter, wrapper.pathToMe, errorDumper,
+                                    e.message ?: "No explanation provided"
+                            ), e
                     )
                 }
                 throw e
             }
 
             assertFalse(
-                formatErrorMessage(
-                    adapter,
-                    wrapper.pathToMe,
-                    "Wrong number of children, expected ${wrapper.nextChildMatcherIdx}, actual ${wrapper.myNumChildren}"
-                )
+                    formatErrorMessage(
+                            adapter,
+                            wrapper.pathToMe,
+                            errorDumper,
+                            "Wrong number of children, expected ${wrapper.nextChildMatcherIdx}, actual ${wrapper.myNumChildren}"
+                    )
             ) {
                 !ignoreChildrenMatchers && wrapper.nextChildMatcherIdx != wrapper.myNumChildren
             }
@@ -329,7 +343,6 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
         }
     }
 }
-
 
 /**
  * Base method to assert that a node of a hierarchy [H] matches the subtree
@@ -347,7 +360,8 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  *
  *     inline fun <reified N : Node> Node?.shouldMatchNode(ignoreChildren: Boolean = false,
  *                                                         noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit) =
- *         this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec)
+ *         this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec = nodeSpec)
+ *         // you can also use a custom dumper
  *
  *
  *
@@ -380,7 +394,7 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  *
  * ### Samples
  *
- * See [TreeNodeWrapper]
+ * See [TreeNodeWrapper].
  *
  * @param H Considered hierarchy
  * @param N Expected type of the node
@@ -390,31 +404,36 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  * @param adapter Instance of the [TreeLikeAdapter] type class for the [H] hierarchy
  *
  * @param ignoreChildren If true, calls to [TreeNodeWrapper.child] in the [nodeSpec] are forbidden.
- *                       The number of children of the child is not asserted.
+ * The number of children of the child is not asserted.
+ *
+ * @param errorDumper If not null, error messages will use this dump config to add a dump of the subtree
+ * below the node where the error occurred.
  *
  * @param nodeSpec Sequence of assertions to carry out on the node, which can be referred to by [TreeNodeWrapper.it].
- *                 Assertions may consist of [TreeNodeWrapper.child] calls, which perform the same type of node
- *                 matching on a child of the tested node, or regular assertions on [TreeNodeWrapper.it].
+ * Assertions may consist of [TreeNodeWrapper.child] calls, which perform the same type of node
+ * matching on a child of the tested node, or regular assertions on [TreeNodeWrapper.it].
  *
  * @throws AssertionError If one of the assertions is violated, e.g. a node is not of the expected type,
- *                        a child doesn't exist, etc.
+ * a child doesn't exist, etc.
  *
  */
 inline fun <H : Any, reified N : H> H?.baseShouldMatchSubtree(
-    adapter: TreeLikeAdapter<H>,
-    ignoreChildren: Boolean = false,
-    noinline nodeSpec: TreeNodeWrapper<H, N>.() -> Unit
+        adapter: TreeLikeAdapter<H>,
+        ignoreChildren: Boolean = false,
+        errorDumper: DumpConfig<H>? = DumpConfig.default(adapter),
+        noinline nodeSpec: TreeNodeWrapper<H, N>.() -> Unit
 ) {
     assertFalse("Expected node of type ${adapter.nodeName(N::class.java)}, but was null") {
         this == null
     }
 
     TreeNodeWrapper.executeWrapper(
-        adapter,
-        N::class.java,
-        this!!,
-        emptyList(),
-        ignoreChildren,
-        nodeSpec
+            adapter,
+            N::class.java,
+            this!!,
+            emptyList(),
+            ignoreChildren,
+            errorDumper,
+            nodeSpec
     )
 }
