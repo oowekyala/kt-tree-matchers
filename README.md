@@ -72,7 +72,7 @@ For example, if your tree type hierarchy is topped by a class named `Node`,
 you should:
 
 * Implement `TreeLikeAdapter<Node>` on some object
-* Define some shorthand methods, to avoid providing the adapter every time
+    * Define some shorthand methods, to avoid providing the adapter every time
 
 Here it is in code:
 
@@ -89,7 +89,7 @@ typealias NodeSpec<N> = TreeNodeWrapper<Node, N>.() -> Unit
 inline fun <reified N : Node> Node?.shouldMatchNode(
                                         ignoreChildren: Boolean = false,
                                         noinline nodeSpec: NodeSpec<N>
-                                    ) = this.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec = nodeSpec)
+                                    ) = this.baseShouldMatchSubtree(MatchingConfig(adapter = NodeTreeLikeAdapter), ignoreChildren, nodeSpec = nodeSpec)
 
 // This can be used with kotlintest's "someNode should matchNode<Foo> { ... }"
 inline fun <reified N : Node> matchNode(

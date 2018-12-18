@@ -3,7 +3,7 @@ package com.github.oowekyala.treematchers
 /**
  * Dumps a node of the hierarchy [H] to its DSL node spec.
  * Customize it to your liking. By default only dumps the
- * structure of the subtree,
+ * structure of the subtree, without any assertions.
  *
  * @author Clément Fournier
  * @since 1.0

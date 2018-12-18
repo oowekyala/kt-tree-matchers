@@ -341,8 +341,10 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
 }
 
 /**
- * Class containing additional configuration for [baseShouldMatchSubtree].
- * This is intended as an extension point for future changes to the API.
+ * Class containing configuration for [baseShouldMatchSubtree]. This is
+ * intended as an extension point for future changes to the API.
+ *
+ * @param adapter The [TreeLikeAdapter] used to roam the tree under an [H] node.
  *
  * @param errorDumper  If not null, error messages will use this dumper
  * to add a dump of the subtree below the node where the error occurred.
@@ -365,7 +367,8 @@ data class MatchingConfig<H : Any>(
  * ### Adapting this method to your use case
  *
  * The [H] type parameter and the [matchingConfig] are unnecessary when the domain is known,
- * so concrete DSLs should provide their own method that delegates to this one and provides the config.
+ * so concrete DSLs should provide their own method that delegates to this one and provides
+ * the config.
  *
  * For example, if your tree type hierarchy is topped by a class named `Node`, and you implemented
  * [TreeLikeAdapter]<Node> on an object `NodeTreeLikeAdapter`, then you could provide the following
