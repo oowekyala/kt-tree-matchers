@@ -1,9 +1,17 @@
 import io.codearte.gradle.nexus.NexusStagingPlugin
+import org.gradle.api.publish.maven.MavenPom
 import org.gradle.kotlin.dsl.accessors.kotlinTypeStringFor
 import org.jetbrains.dokka.gradle.DokkaPlugin
 import org.jetbrains.dokka.gradle.DokkaTask
+import org.jetbrains.dokka.gradle.LinkMapping
+import org.jetbrains.dokka.gradle.SourceRoot
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeFirstWord
+import org.w3c.dom.Element
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 import java.util.Date
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     kotlin("jvm") version "1.3.10"
@@ -14,14 +22,14 @@ plugins {
 }
 
 val kotlinVersion by extra { "1.3.10" } // sync with above
+val repoAddress = "https://github.com/oowekyala/kt-tree-matchers"
 
 group = "com.github.oowekyala.kt-tree-utils"
 version = "2.0"
 
 
-repositories {
-    jcenter()
-}
+evaluationDependsOnChildren()
+
 
 dependencies {
     constraints {
@@ -33,13 +41,23 @@ dependencies {
 
 subprojects {
 
+
+    val sub = this@subprojects
+
+
+    repositories {
+        jcenter()
+    }
+
     apply<KotlinPluginWrapper>()
     apply<DokkaPlugin>()
     apply<MavenPublishPlugin>()
     apply<SigningPlugin>()
 
+
+
     dependencies {
-        implementation(kotlin("stdlib-jdk7"))
+        compileOnly(kotlin("stdlib-jdk7"))
 
         // test use case
         testCompile("net.sourceforge.pmd:pmd-java:6.6.0")
@@ -56,10 +74,15 @@ subprojects {
         }
 
         dokka {
-            outputFormat = "html"
             outputDirectory = "$buildDir/javadoc"
+            outputFormat = "html"
+            includes += "../dokka.md"
 
-            includes += "dokka.md"
+            linkMapping(delegateClosureOf<LinkMapping> {
+                dir = "src/main/kotlin"
+                url = "$repoAddress/blob/master/$dir"
+                suffix = "#L"
+            })
         }
 
         val dokkaJar by creating(Jar::class) {
@@ -76,18 +99,16 @@ subprojects {
             from(sourceSets["main"].allSource)
         }
 
-
         publishing {
             publications {
 
-                val repoAddress = "https://github.com/oowekyala/kt-tree-matchers"
 
                 create<MavenPublication>("default") {
-                    groupId = group.toString()
-                    artifactId = name
+                    groupId = sub.group.toString()
+                    artifactId = sub.name
                     version = version.toString()
 
-                    from(this@subprojects.components["java"])
+                    from(sub.components["java"])
                     artifact(dokkaJar)
                     artifact(sourcesJar)
 
@@ -95,12 +116,23 @@ subprojects {
 
                         operator fun <T> Property<T>.invoke(value: T): Unit = set(value)
 
-                        val mvnName = name
+                        val mvnName = sub.name
+                                .replace('-', ' ')
+                                .split(" ")
+                                .map { it.capitalize() }
+                                .joinToString(separator = " ") { it }
+                                .let { "$it for Kotlin" }
 
-                        name("Kotlin Tree Matchers")
+                        name(mvnName)
                         packaging = "jar"
 
-                        description("A testing DSL to specify the structure of a tree in a concise and readable way.")
+
+                        description(
+                                if (sub.name == "tree-matchers")
+                                    "A testing DSL to specify the structure of a tree in a concise and readable way."
+                                else
+                                    "A set of pretty printers for trees, any trees."
+                        )
                         url(repoAddress)
                         inceptionYear("2018")
 
@@ -125,9 +157,44 @@ subprojects {
                                 email("clement.fournier76@gmail.com")
                             }
                         }
+
+                        withXml {
+                            fun NodeList.asList(): List<Node> = (0..length).map { item(it) }
+
+                            val root = this.asElement().ownerDocument
+
+                            fun elt(name: String, contents: (Element) -> Unit = {}) =
+                                    root.createElement(name).also {
+                                        contents(it)
+                                    } as Element
+
+                            fun Node.plus(name: String, text: String? = null): Element =
+                                    appendChild(elt(name) {
+                                        if (text != null)
+                                            it.appendChild(root.createTextNode(text))
+                                    }) as Element
+
+                            val dependencies =
+                                    root.getElementsByTagName("dependencies").asList().firstOrNull()
+                                    ?: root.documentElement.plus("dependencies")
+
+
+                            sub.configurations.compileOnly.allDependencies.forEach { dep ->
+
+                                val node = elt("dependency") {
+                                    it.plus("groupId", dep.group ?: "")
+                                    it.plus("artifactId", dep.name)
+                                    dep.version?.let { v -> it.plus("version", v) }
+                                    it.plus("scope", "provided")
+                                }
+
+                                dependencies.appendChild(node)
+                            }
+                        }
                     }
                 }
             }
+
 
 
             repositories {
