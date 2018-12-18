@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="kt-tree-matchers_main" target="1.9" />
+      <module name="kt-tree-matchers_test" target="1.9" />
+      <module name="kt-tree-utils_main" target="1.9" />
+      <module name="kt-tree-utils_test" target="1.9" />
+      <module name="tree-matchers_main" target="1.9" />
+      <module name="tree-matchers_test" target="1.9" />
+      <module name="tree-printers_main" target="1.9" />
+      <module name="tree-printers_test" target="1.9" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
