@@ -1,5 +1,6 @@
 package com.github.oowekyala.treematchers
 
+import com.github.oowekyala.treematchers.dumpers.DslTreeDumper
 import net.sourceforge.pmd.lang.LanguageRegistry
 import net.sourceforge.pmd.lang.ast.Node
 import net.sourceforge.pmd.lang.java.JavaLanguageModule
@@ -34,7 +35,7 @@ object NodeTreeLikeAdapter : TreeLikeAdapter<Node> {
 
 
 inline fun <reified N : Node> matchNode(
-        errorDumper: TreeDumper<Node>? = TreeDumper(NodeTreeLikeAdapter),
+        errorDumper: TreeDumper<Node>? = DslTreeDumper(NodeTreeLikeAdapter),
         ignoreChildren: Boolean = false,
         noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit
 ): (Node?) -> Unit = {

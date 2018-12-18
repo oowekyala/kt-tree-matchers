@@ -1,26 +1,62 @@
-package com.github.oowekyala.treematchers
+package com.github.oowekyala.treematchers.dumpers
 
+import com.github.oowekyala.treematchers.TreeLikeAdapter
 import java.beans.BeanInfo
 import java.beans.IntrospectionException
 import java.beans.Introspector
 import java.beans.PropertyDescriptor
 import java.lang.reflect.InvocationTargetException
 import java.util.*
+import kotlin.reflect.KClass
 
 /**
- * A dumper that adds assertions for the properties accessible as beans.
+ * A [DslTreeDumper] that adds assertions for the properties accessible as beans.
+ * Useful to e.g. generate unit tests.
+ *
+ * Dumps all properties it can by default.
+ * * override [valueToString] to support more property types
+ * * override [takePropertyDescriptorIf] to filter out some descriptors on an arbitrary condition
  *
  * @author Clément Fournier
  * @since 1.0
  */
-abstract class BaseBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : TreeDumper<H>(adapter) {
+abstract class BeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : DslTreeDumper<H>(adapter) {
 
+    /**
+     * Returns true if the property [prop] of [node] should be dumped as an assertion.
+     * Property descriptors are previously filtered to those that *can* be dumped,
+     * by [valueToString].
+     */
     protected open fun takePropertyDescriptorIf(node: H, prop: PropertyDescriptor): Boolean = true
 
+    /**
+     * Gets the bean property descriptors of the given class. Uses [java.beans.Introspector.getPropertyDescriptors]
+     * by default.
+     */
     protected open fun getAllPropertyDescriptors(node: H): List<PropertyDescriptor> = myGetPropertyDescriptors(node.javaClass)
 
+    /**
+     * Formats an assertion asserting the property [actualPropertyAccess] is
+     * the object [expected]. This can be tuned to your preferred testing syntax,
+     * e.g. see [JUnitBeanTreeDumper] and [KotlintestBeanTreeDumper].
+     *
+     * Example input: if a node's class has a method `getName()`, which returns
+     * the string `"foo"`, then this method will be called with parameters
+     * `(expected = "foo", actualPropertyAccess = "it.name"`). You may e.g. return
+     * `"$actualPropertyAccess shouldBe ${valueToString(expected)}"`, or switch
+     * on the type of the value to select another assertion method.
+     *
+     * @return A formatted assertion string. If null then the assertion won't be rendered
+     */
     protected abstract fun formatPropertyAssertion(expected: Any?, actualPropertyAccess: String): String?
 
+    /**
+     * Formats an assertion asserting the property [actualPropertyAccess] is
+     * equal to the given [node], which is the [childIndex]th child of his
+     * parent.
+     *
+     * @return a pair of (prefix, suffix) which will surround the `child<..>{..}` call corresponding to [node]
+     */
     protected abstract fun getContextAroundChildAssertion(node: H, childIndex: Int, actualPropertyAccess: String): Pair<String, String>
 
     private fun getKotlinPropertyName(prop: PropertyDescriptor) =
@@ -51,8 +87,8 @@ abstract class BaseBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : TreeDu
     final override fun getAdditionalAssertions(node: H): List<String> =
             getPropertyToValue(node)
                     .asSequence()
-                    .filter { (prop, _) -> takePropertyDescriptorIf(node, prop) }
                     .filter { (_, value) -> valueToString(value) != null }
+                    .filter { (prop, _) -> takePropertyDescriptorIf(node, prop) }
                     .mapNotNull { (prop, v) ->
                         formatPropertyAssertion(expected = v, actualPropertyAccess = "it.${getKotlinPropertyName(prop)}")
                     }
@@ -76,7 +112,15 @@ abstract class BaseBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : TreeDu
                         )
                     }.toMap()
 
-    // returns null if the value is unsupported
+    /**
+     * Returns a string that can represent the [value] in
+     * a Kotlin source file. If this method returns null,
+     * no assertion will be generated for the property the
+     * value comes from.
+     *
+     * The default supports primitive types, [Class], [KClass],
+     * enum constants, [String] and null values.
+     */
     protected open fun valueToString(value: Any?): String? {
         return when (value) {
             is String                   ->
@@ -86,7 +130,8 @@ abstract class BaseBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : TreeDu
                         .let { "\"$it\"" }
             is Char                     -> '\''.toString() + value.toString().replace("'".toRegex(), "\\'") + '\''.toString()
             is Enum<*>                  -> value.enumDeclaringClass.canonicalName + "." + value.name
-            is Class<*>                 -> value.canonicalName + "::class.java"
+            is Class<*>                 -> value.canonicalName?.let { "::class.java" }
+            is KClass<*>                -> value.qualifiedName?.let { "::class" }
             is Number, is Boolean, null -> value.toString()
             else                        -> null
         }

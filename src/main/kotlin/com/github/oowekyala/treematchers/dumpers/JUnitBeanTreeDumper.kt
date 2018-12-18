@@ -1,10 +1,14 @@
-package com.github.oowekyala.treematchers
+package com.github.oowekyala.treematchers.dumpers
+
+import com.github.oowekyala.treematchers.TreeLikeAdapter
 
 /**
+ * Dumps the bean properties of a node with a JUnit-like syntax.
+ *
  * @author Clément Fournier
  * @since 1.0
  */
-open class JUnitBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : BaseBeanTreeDumper<H>(adapter) {
+open class JUnitBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : BeanTreeDumper<H>(adapter) {
 
     override fun formatPropertyAssertion(expected: Any?, actualPropertyAccess: String): String? =
             when (expected) {

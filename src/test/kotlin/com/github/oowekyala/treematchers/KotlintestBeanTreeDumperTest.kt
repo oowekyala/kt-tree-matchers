@@ -1,5 +1,6 @@
 package com.github.oowekyala.treematchers
 
+import com.github.oowekyala.treematchers.dumpers.KotlintestBeanTreeDumper
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import net.sourceforge.pmd.lang.ast.Node

@@ -1,5 +1,6 @@
 package com.github.oowekyala.treematchers
 
+import com.github.oowekyala.treematchers.dumpers.DslTreeDumper
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.text.RegexOption.DOT_MATCHES_ALL
@@ -355,7 +356,7 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  */
 data class MatchingConfig<H : Any>(
         val adapter: TreeLikeAdapter<H>,
-        val errorDumper: TreeDumper<H>? = TreeDumper(adapter),
+        val errorDumper: TreeDumper<H>? = DslTreeDumper(adapter),
         val maxDumpDepth: Int = -1
 )
 
