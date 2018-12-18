@@ -26,4 +26,10 @@ interface TreeLikeAdapter<H : Any> {
      */
     fun nodeName(type: Class<out H>): String = type.simpleName
 
+    /**
+     * Gets the dumper used to dump nodes to error messages if needed.
+     */
+    val treeDumper: TreeDumper<H>
+        get() = TreeDumper(this)
+
 }
