@@ -1,4 +1,4 @@
-package com.github.oowekyala.treematchers.dumpers
+package com.github.oowekyala.treematchers.printers
 
 import com.github.oowekyala.treematchers.TreeLikeAdapter
 
@@ -8,7 +8,7 @@ import com.github.oowekyala.treematchers.TreeLikeAdapter
  * @author Clément Fournier
  * @since 1.0
  */
-open class JUnitBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : BeanTreeDumper<H>(adapter) {
+open class JUnitBeanTreePrinter<H : Any>(adapter: TreeLikeAdapter<H>) : BeanTreePrinter<H>(adapter) {
 
     override fun formatPropertyAssertion(expected: Any?, actualPropertyAccess: String): String? =
             when (expected) {

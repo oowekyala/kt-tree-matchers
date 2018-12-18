@@ -1,6 +1,6 @@
 package com.github.oowekyala.treematchers
 
-import com.github.oowekyala.treematchers.dumpers.DslTreeDumper
+import com.github.oowekyala.treematchers.printers.DslTreePrinter
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import net.sourceforge.pmd.lang.ast.Node
@@ -14,7 +14,7 @@ import net.sourceforge.pmd.lang.java.ast.ASTVariableDeclaratorId
 class DumperTest : FunSpec({
 
     test("Default dumper should dump the whole tree structure") {
-        val dumper = DslTreeDumper(NodeTreeLikeAdapter)
+        val dumper = DslTreePrinter(NodeTreeLikeAdapter)
 
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it)
@@ -40,7 +40,7 @@ class DumperTest : FunSpec({
     }
 
     test("A dumper should ignore children past the max dump depth") {
-        val dumper = DslTreeDumper(NodeTreeLikeAdapter)
+        val dumper = DslTreePrinter(NodeTreeLikeAdapter)
 
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 3)
@@ -60,7 +60,7 @@ class DumperTest : FunSpec({
     }
 
     test("Dumping with max dump depth 0 should only dump the root") {
-        val dumper = DslTreeDumper(NodeTreeLikeAdapter)
+        val dumper = DslTreePrinter(NodeTreeLikeAdapter)
 
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 0)
@@ -70,7 +70,7 @@ class DumperTest : FunSpec({
     }
 
     test("Dumping with max dump depth 1 should dump the root and its children") {
-        val dumper = DslTreeDumper(NodeTreeLikeAdapter)
+        val dumper = DslTreePrinter(NodeTreeLikeAdapter)
 
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 1)
@@ -86,7 +86,7 @@ class DumperTest : FunSpec({
 
     test("Child assertions should surround their corresponding child call") {
 
-        val dumper = object : DslTreeDumper<Node>(NodeTreeLikeAdapter) {
+        val dumper = object : DslTreePrinter<Node>(NodeTreeLikeAdapter) {
 
             override fun getChildCallContexts(parent: Node): Map<Int, Pair<String, String>> =
                     when (parent) {
@@ -127,7 +127,7 @@ class DumperTest : FunSpec({
 
     test("Additional assertions should be added before child calls") {
 
-        val dumper = object : DslTreeDumper<Node>(NodeTreeLikeAdapter) {
+        val dumper = object : DslTreePrinter<Node>(NodeTreeLikeAdapter) {
 
             override fun getChildCallContexts(parent: Node): Map<Int, Pair<String, String>> =
                     when (parent) {

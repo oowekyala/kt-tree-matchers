@@ -1,6 +1,6 @@
 package com.github.oowekyala.treematchers
 
-import com.github.oowekyala.treematchers.dumpers.KotlintestBeanTreeDumper
+import com.github.oowekyala.treematchers.printers.KotlintestBeanTreePrinter
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import net.sourceforge.pmd.lang.ast.Node
@@ -10,10 +10,12 @@ import java.beans.PropertyDescriptor
  * @author Clément Fournier
  * @since 1.0
  */
-class KotlintestBeanTreeDumperTest : FunSpec({
+class KotlintestBeanTreePrinterTest : FunSpec({
 
-    test("The bean dumper should add assertions") {
-        val dumper = KotlintestBeanTreeDumper(NodeTreeLikeAdapter)
+    test("The filter should control which properties are dumped") {
+        val dumper = object : KotlintestBeanTreePrinter<Node>(NodeTreeLikeAdapter) {
+            override fun takePropertyDescriptorIf(node: Node, prop: PropertyDescriptor): Boolean = true
+        }
 
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 1)
@@ -85,12 +87,8 @@ class KotlintestBeanTreeDumperTest : FunSpec({
     }
 
 
-    test("The filter predicate should filter properties out") {
-        val dumper = object : KotlintestBeanTreeDumper<Node>(NodeTreeLikeAdapter) {
-
-            override fun takePropertyDescriptorIf(node: Node, prop: PropertyDescriptor): Boolean
-                    = prop.readMethod?.declaringClass === node.javaClass
-        }
+    test("The default printer should print only properties declared on the class") {
+        val dumper = KotlintestBeanTreePrinter(NodeTreeLikeAdapter)
 
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 1)

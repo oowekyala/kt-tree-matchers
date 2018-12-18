@@ -1,4 +1,4 @@
-package com.github.oowekyala.treematchers.dumpers
+package com.github.oowekyala.treematchers.printers
 
 import com.github.oowekyala.treematchers.TreeLikeAdapter
 import java.beans.BeanInfo
@@ -7,27 +7,29 @@ import java.beans.Introspector
 import java.beans.PropertyDescriptor
 import java.lang.reflect.InvocationTargetException
 import java.util.*
-import kotlin.reflect.KClass
 
 /**
- * A [DslTreeDumper] that adds assertions for the properties accessible as beans.
+ * A [DslTreePrinter] that adds assertions for the properties accessible as beans.
  * Useful to e.g. generate unit tests.
  *
- * Dumps all properties it can by default.
+ * Prints only properties declared on the node's runtime class by default.
+ * * override [takePropertyDescriptorIf] to specify a different filter
  * * override [valueToString] to support more property types
- * * override [takePropertyDescriptorIf] to filter out some descriptors on an arbitrary condition
  *
  * @author Clément Fournier
  * @since 1.0
  */
-abstract class BeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : DslTreeDumper<H>(adapter) {
+abstract class BeanTreePrinter<H : Any>(adapter: TreeLikeAdapter<H>) : DslTreePrinter<H>(adapter) {
 
     /**
      * Returns true if the property [prop] of [node] should be dumped as an assertion.
      * Property descriptors are previously filtered to those that *can* be dumped,
      * by [valueToString].
+     *
+     * By default, filters out properties that were not declared on the node's runtime class.
      */
-    protected open fun takePropertyDescriptorIf(node: H, prop: PropertyDescriptor): Boolean = true
+    protected open fun takePropertyDescriptorIf(node: H, prop: PropertyDescriptor): Boolean =
+            prop.readMethod?.declaringClass === node.javaClass
 
     /**
      * Gets the bean property descriptors of the given class. Uses [java.beans.Introspector.getPropertyDescriptors]
@@ -38,7 +40,7 @@ abstract class BeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : DslTreeDum
     /**
      * Formats an assertion asserting the property [actualPropertyAccess] is
      * the object [expected]. This can be tuned to your preferred testing syntax,
-     * e.g. see [JUnitBeanTreeDumper] and [KotlintestBeanTreeDumper].
+     * e.g. see [JUnitBeanTreePrinter] and [KotlintestBeanTreePrinter].
      *
      * Example input: if a node's class has a method `getName()`, which returns
      * the string `"foo"`, then this method will be called with parameters
@@ -118,7 +120,7 @@ abstract class BeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : DslTreeDum
      * no assertion will be generated for the property the
      * value comes from.
      *
-     * The default supports primitive types, [Class], [KClass],
+     * The default supports primitive types, [Class],
      * enum constants, [String] and null values.
      */
     protected open fun valueToString(value: Any?): String? {
@@ -130,8 +132,7 @@ abstract class BeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : DslTreeDum
                         .let { "\"$it\"" }
             is Char                     -> '\''.toString() + value.toString().replace("'".toRegex(), "\\'") + '\''.toString()
             is Enum<*>                  -> value.enumDeclaringClass.canonicalName + "." + value.name
-            is Class<*>                 -> value.canonicalName?.let { "::class.java" }
-            is KClass<*>                -> value.qualifiedName?.let { "::class" }
+            is Class<*>                 -> value.canonicalName?.let { "$it::class.java" }
             is Number, is Boolean, null -> value.toString()
             else                        -> null
         }

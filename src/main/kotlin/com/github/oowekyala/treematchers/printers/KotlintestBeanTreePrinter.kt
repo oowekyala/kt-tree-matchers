@@ -1,14 +1,14 @@
-package com.github.oowekyala.treematchers.dumpers
+package com.github.oowekyala.treematchers.printers
 
 import com.github.oowekyala.treematchers.TreeLikeAdapter
 
 /**
- * A [BeanTreeDumper] that formats assertions with a kotlintest "should" syntax.
+ * A [BeanTreePrinter] that formats assertions with a kotlintest "should" syntax.
  *
  * @author Clément Fournier
  * @since 1.0
  */
-open class KotlintestBeanTreeDumper<H : Any>(adapter: TreeLikeAdapter<H>) : BeanTreeDumper<H>(adapter) {
+open class KotlintestBeanTreePrinter<H : Any>(adapter: TreeLikeAdapter<H>) : BeanTreePrinter<H>(adapter) {
 
     override fun formatPropertyAssertion(expected: Any?, actualPropertyAccess: String): String? =
             valueToString(expected)?.let { "$actualPropertyAccess shouldBe $it" }

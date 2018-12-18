@@ -182,10 +182,10 @@ class DslTest : FunSpec({
     }
 
 
-    test("Error messages should not contain a subtree dump if the dumper is null") {
+    test("Error messages should not contain a subtree dump if the pretty printer is null") {
 
         val exception = shouldThrow<AssertionError> {
-            parseStatement("int[] i = 0;") should matchNode<ASTLocalVariableDeclaration>(errorDumper = null) {
+            parseStatement("int[] i = 0;") should matchNode<ASTLocalVariableDeclaration>(errorPrinter = null) {
 
                 child<ASTType> {
 

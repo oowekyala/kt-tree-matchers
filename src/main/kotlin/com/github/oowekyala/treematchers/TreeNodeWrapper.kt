@@ -1,6 +1,6 @@
 package com.github.oowekyala.treematchers
 
-import com.github.oowekyala.treematchers.dumpers.DslTreeDumper
+import com.github.oowekyala.treematchers.printers.DslTreePrinter
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.text.RegexOption.DOT_MATCHES_ALL
@@ -255,9 +255,9 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
                 message: String
         ) =
                 "At ${formatPath(matchingConfig.adapter, matcherPath)}: $message".plus(
-                        if (matchingConfig.errorDumper != null && matcherPath.isNotEmpty()) {
+                        if (matchingConfig.errorPrinter != null && matcherPath.isNotEmpty()) {
                             "\n\nThe error occurred in this subtree:\n\n" +
-                            matchingConfig.errorDumper.dumpSubtree(matcherPath.last().it)
+                            matchingConfig.errorPrinter.dumpSubtree(matcherPath.last().it)
 
                         } else ""
                 )
@@ -347,16 +347,16 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  *
  * @param adapter The [TreeLikeAdapter] used to roam the tree under an [H] node.
  *
- * @param errorDumper  If not null, error messages will use this dumper
+ * @param errorPrinter  If not null, error messages will use this pretty printer
  * to add a dump of the subtree below the node where the error occurred.
  *
- * @param maxDumpDepth The maximum depth to which the dumper will dump nodes.
+ * @param maxDumpDepth The maximum depth to which the pretty printer will dump nodes.
  * A value of zero only dumps the root node. A negative value dumps the whole subtree.
  * By default the whole subtree is dumped.
  */
 data class MatchingConfig<H : Any>(
         val adapter: TreeLikeAdapter<H>,
-        val errorDumper: TreeDumper<H>? = DslTreeDumper(adapter),
+        val errorPrinter: TreePrinter<H>? = DslTreePrinter(adapter),
         val maxDumpDepth: Int = -1
 )
 
@@ -389,8 +389,8 @@ data class MatchingConfig<H : Any>(
  *          ...
  *     }
  *
- * You can also provide a custom dumper when building your [MatchingConfig], or set a depth maximum
- * on tree dumps. If you want to be able to configure the dumper at call sites, you should add a parameter
+ * You can also provide a custom pretty printer when building your [MatchingConfig], or set a depth maximum
+ * on tree dumps. If you want to be able to configure the pretty printer at call sites, you should add a parameter
  * for it on your `shouldMatchNode`.
  *
  * #### Using [kotlintest](https://github.com/kotlintest/kotlintest)

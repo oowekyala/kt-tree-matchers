@@ -1,26 +1,25 @@
-package com.github.oowekyala.treematchers.dumpers
+package com.github.oowekyala.treematchers.printers
 
-import com.github.oowekyala.treematchers.TreeDumper
+import com.github.oowekyala.treematchers.TreePrinter
 import com.github.oowekyala.treematchers.TreeLikeAdapter
 
 /**
  * Dumps a node of the hierarchy [H] to its DSL node spec.
  * Customize it to your liking. By default only dumps the
  * structure of the subtree, without any assertions.
- *
- * [JUnitBeanTreeDumper] or [KotlintestBeanTreeDumper] can
+ * [JUnitBeanTreePrinter] or [KotlintestBeanTreePrinter] can
  * add assertions, which is especially useful if you want to
  * generate complete unit tests.
  *
  * @author Clément Fournier
  * @since 1.0
  */
-open class DslTreeDumper<H : Any>(
+open class DslTreePrinter<H : Any>(
         /** Adapter for the [H] hierarchy. */
         protected val adapter: TreeLikeAdapter<H>,
         /** Size of each indent level. */
         protected val indentSize: Int = 4
-) : TreeDumper<H> {
+) : TreePrinter<H> {
 
     /**
      * Returns a list of strings that will be added to the nodeSpec dump of [node].
