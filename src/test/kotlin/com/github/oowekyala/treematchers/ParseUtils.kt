@@ -34,9 +34,13 @@ object NodeTreeLikeAdapter : TreeLikeAdapter<Node> {
 
 
 inline fun <reified N : Node> matchNode(
-    ignoreChildren: Boolean = false,
-    noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit
-): (Node?) -> Unit = { it.baseShouldMatchSubtree(NodeTreeLikeAdapter, ignoreChildren, nodeSpec = nodeSpec) }
+        errorDumper: TreeDumper<Node>? = TreeDumper(NodeTreeLikeAdapter),
+        ignoreChildren: Boolean = false,
+        noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit
+): (Node?) -> Unit = {
+    val myConfig = MatchingConfig(adapter = NodeTreeLikeAdapter, errorDumper = errorDumper)
+    it.baseShouldMatchSubtree(myConfig, ignoreChildren, nodeSpec)
+}
 
 
 fun parseCompilationUnit(sourceCode: String): ASTCompilationUnit {

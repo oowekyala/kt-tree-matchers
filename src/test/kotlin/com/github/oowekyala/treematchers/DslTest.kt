@@ -2,6 +2,7 @@ package com.github.oowekyala.treematchers
 
 import io.kotlintest.should
 import io.kotlintest.shouldBe
+import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
 import net.sourceforge.pmd.lang.java.ast.*
 
@@ -149,6 +150,55 @@ class DslTest : FunSpec({
             child<ASTType> {} // This should fail
             unspecifiedChild()
         }
+    }
+
+    test("Error messages should contain a dump of the subtree where the error occurred") {
+
+        val exception = shouldThrow<AssertionError> {
+            parseStatement("int[] i = 0;") should matchNode<ASTLocalVariableDeclaration> {
+
+                child<ASTType> {
+
+                    // this fails
+                    it.typeImage shouldBe "bratwurst"
+
+                }
+
+                unspecifiedChild()
+            }
+        }
+
+        exception.message shouldBe """
+            At /LocalVariableDeclaration/Type: expected: "bratwurst" but was: "int"
+
+            The error occurred in this subtree:
+
+            node<ASTType> {
+                child<ASTReferenceType> {
+                    child<ASTPrimitiveType> {}
+                }
+            }
+        """.trimIndent()
+    }
+
+
+    test("Error messages should not contain a subtree dump if the dumper is null") {
+
+        val exception = shouldThrow<AssertionError> {
+            parseStatement("int[] i = 0;") should matchNode<ASTLocalVariableDeclaration>(errorDumper = null) {
+
+                child<ASTType> {
+
+                    // this fails
+                    it.typeImage shouldBe "bratwurst"
+
+                }
+
+                unspecifiedChild()
+            }
+        }
+
+        exception.message shouldBe "At /LocalVariableDeclaration/Type: expected: \"bratwurst\" but was: \"int\""
     }
 
 })

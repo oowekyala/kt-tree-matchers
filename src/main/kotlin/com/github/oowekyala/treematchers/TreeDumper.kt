@@ -5,7 +5,6 @@ package com.github.oowekyala.treematchers
  * Customize it to your liking. By default only dumps the
  * structure of the subtree,
  *
- *
  * @author Clément Fournier
  * @since 1.0
  */
@@ -15,6 +14,7 @@ open class TreeDumper<H : Any>(
         /** Size of each indent level. */
         protected val indentSize: Int = 4
 ) {
+
     /**
      * Returns a list of strings that will be added to the nodeSpec dump of [node].
      * E.g. if [node] has the properties `prefix` and `suffix`,
@@ -90,9 +90,9 @@ open class TreeDumper<H : Any>(
      * Returns the name of the root matching method. This is used
      * in the default version of [getRootSpecPrefix], and allows you
      * to keep the default version of [getRootMatchingMethodArguments]
-     * but just change the method name. By default this is `"matchNode"`.
+     * but just change the method name. By default this is `"node"`.
      */
-    open fun getRootMatchingMethodName(node: H) = "matchNode"
+    open fun getRootMatchingMethodName(node: H) = "node"
 
     /**
      * Dumps the given subtree to its DSL node spec.
@@ -101,7 +101,10 @@ open class TreeDumper<H : Any>(
      * @param maxDumpDepth Maximum depth on which to recurse. A value of zero only dumps the root node.
      * A negative value dumps the whole subtree.
      */
-    fun dumpSubtree(node: H, maxDumpDepth: Int = -1): String =
+    fun dumpSubtree(
+            node: H,
+            maxDumpDepth: Int = -1
+    ): String =
             StringBuilder().also {
                 appendSubtree(node, it, false, 0, maxDumpDepth)
             }.toString()
@@ -152,16 +155,4 @@ open class TreeDumper<H : Any>(
 
     private fun StringBuilder.appendNewLine(currentIndent: Int): StringBuilder =
             append("\n").append(" ".repeat(currentIndent))
-}
-
-/**
- * A config object that decides how to format tree dumps on error messages.
- */
-data class DumpConfig<H : Any>(val treeDumper: TreeDumper<H>, val maxDumpDepth: Int = -1) {
-
-    fun dumpSubtree(node: H) = treeDumper.dumpSubtree(node, maxDumpDepth)
-
-    companion object {
-        fun <H : Any> default(adapter: TreeLikeAdapter<H>) = DumpConfig(TreeDumper(adapter))
-    }
 }

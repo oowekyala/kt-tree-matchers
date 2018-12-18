@@ -18,7 +18,7 @@ class DumperTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it)
         } shouldBe """
-            matchNode<ASTLocalVariableDeclaration> {
+            node<ASTLocalVariableDeclaration> {
                 child<ASTType> {
                     child<ASTPrimitiveType> {}
                 }
@@ -44,7 +44,7 @@ class DumperTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 3)
         } shouldBe """
-            matchNode<ASTLocalVariableDeclaration> {
+            node<ASTLocalVariableDeclaration> {
                 child<ASTType> {
                     child<ASTPrimitiveType>(ignoreChildren = true) {}
                 }
@@ -62,7 +62,7 @@ class DumperTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 0)
         } shouldBe """
-            matchNode<ASTLocalVariableDeclaration>(ignoreChildren = true) {
+            node<ASTLocalVariableDeclaration>(ignoreChildren = true) {
             }
         """.trimIndent()
     }
@@ -82,7 +82,7 @@ class DumperTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it)
         } shouldBe """
-            matchNode<ASTLocalVariableDeclaration> {
+            node<ASTLocalVariableDeclaration> {
                 child<ASTType> {
                     child<ASTPrimitiveType> {}
                 }
@@ -127,7 +127,7 @@ class DumperTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it)
         } shouldBe """
-            matchNode<ASTLocalVariableDeclaration> {
+            node<ASTLocalVariableDeclaration> {
                 child<ASTType> {
                     child<ASTPrimitiveType> {}
                 }

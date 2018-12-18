@@ -26,6 +26,8 @@ dependencies {
     testCompile("net.sourceforge.pmd:pmd-java:6.6.0")
 
     testImplementation("io.kotlintest:kotlintest-runner-junit5:3.1.11")
+    testRuntime("org.slf4j:slf4j-api:1.7.25")
+    testRuntime("org.slf4j:slf4j-log4j12:1.7.25")
 }
 
 
