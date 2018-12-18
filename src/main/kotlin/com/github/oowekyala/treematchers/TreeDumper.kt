@@ -30,14 +30,30 @@ open class TreeDumper<H : Any>(
     open fun getAdditionalAssertions(node: H): List<String> = emptyList()
 
     /**
-     * Returns a map of assertions that will be appended by a [TreeNodeWrapper.child]
-     * nodespec dump. E.g. if [node] has a property "firstChild" which should
-     * be equal to the first child of [node], then the returned map should contain
-     * a mapping `0 -> "it.firstChild shouldBe "`, which will be translated to
+     * Returns a map of the contexts surrounding the nodespec dumps
+     * corresponding to the children of this node.
+     *
+     * The mappings map a child index to a pairs (prefix, suffix) that should
+     * surround the call to [TreeNodeWrapper.child] corresponding to the
+     * child with the key child in the nodespec of the [parent] node.
+     *
+     *
+     * E.g. if [parent] has a property "firstChild" which should
+     * be equal to its first child, then the returned map could contain
+     * a mapping `0 -> Pair("it.firstChild shouldBe ", "")`, which will be translated to
      *
      *     it.firstChild shouldBe child<FirstChildActualType> {
-     *       ...
+     *       ... // nodespec of the child
      *     }
+     *
+     * To get a JUnit like syntax you could have a mapping
+     * `0 -> Pair("val child0 = ", "\n assertEquals(child0, it.firstChild)`,
+     * which would be translated to
+     *
+     *     val child0 = child<FirstChildActualType> {
+     *       ... // nodespec of the child
+     *     }
+     *     assertEquals(child0, it.firstChild)
      *
      * Don't forget to include some whitespace at the end of the strings if needed.
      *
@@ -48,10 +64,10 @@ open class TreeDumper<H : Any>(
      * By default, no child assertion is added, which means all `child` calls
      * are inserted with no prefix.
      *
-     * @param node Node to get the assertions for.
+     * @param parent Node to get the assertions for.
      *
      */
-    open fun getChildAssertions(node: H): Map<Int, String> = emptyMap()
+    open fun getChildCallContexts(parent: H): Map<Int, Pair<String, String>> = emptyMap()
 
     /**
      * Returns the string that will be prepended to the opening brace
@@ -113,12 +129,12 @@ open class TreeDumper<H : Any>(
         val bodyIdentSize = indentDepth + indentSize
 
         val additionalAssertions = getAdditionalAssertions(node)
-        val children = if (maxDumpDepth == 1) emptyList() else adapter.getChildren(node)
-        val childAssertions = if (maxDumpDepth == 1) emptyMap() else getChildAssertions(node)
+        val children = if (maxDumpDepth == 0) emptyList() else adapter.getChildren(node)
+        val childAssertions = if (maxDumpDepth == 0) emptyMap() else getChildCallContexts(node)
 
 
         if (isChild) {
-            val params = if (maxDumpDepth == 1) "(ignoreChildren = true)" else ""
+            val params = if (maxDumpDepth == 0) "(ignoreChildren = true)" else ""
 
             builder.append("child<").append(node.javaClass.simpleName).append(">").append(params).append(" {")
         } else {
@@ -138,11 +154,22 @@ open class TreeDumper<H : Any>(
                 }
                 builder.appendNewLine(bodyIdentSize)
 
-                childAssertions[i]?.run {
-                    builder.append(this)
+                fun appendExternal(string: String) {
+                    for (it in string) {
+                        when (it) {
+                            '\n' -> builder.appendNewLine(bodyIdentSize)
+                            else -> builder.append(it)
+                        }
+                    }
                 }
 
+                val (prefix, suffix) = childAssertions[i] ?: Pair("", "")
+
+                appendExternal(prefix)
+
                 appendSubtree(child, builder, true, bodyIdentSize, maxDumpDepth - 1)
+
+                appendExternal(suffix)
             }
         }
 

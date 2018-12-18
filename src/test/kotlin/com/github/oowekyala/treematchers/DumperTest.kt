@@ -46,11 +46,13 @@ class DumperTest : FunSpec({
         } shouldBe """
             node<ASTLocalVariableDeclaration> {
                 child<ASTType> {
-                    child<ASTPrimitiveType>(ignoreChildren = true) {}
+                    child<ASTPrimitiveType> {}
                 }
                 child<ASTVariableDeclarator> {
-                    child<ASTVariableDeclaratorId>(ignoreChildren = true) {}
-                    child<ASTVariableInitializer>(ignoreChildren = true) {}
+                    child<ASTVariableDeclaratorId> {}
+                    child<ASTVariableInitializer> {
+                        child<ASTExpression>(ignoreChildren = true) {}
+                    }
                 }
             }
         """.trimIndent()
@@ -62,21 +64,37 @@ class DumperTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 0)
         } shouldBe """
-            node<ASTLocalVariableDeclaration>(ignoreChildren = true) {
+            node<ASTLocalVariableDeclaration>(ignoreChildren = true) {}
+        """.trimIndent()
+    }
+
+    test("Dumping with max dump depth 1 should dump the root and its children") {
+        val dumper = TreeDumper(NodeTreeLikeAdapter)
+
+        parseStatement("int i = 0;").let {
+            dumper.dumpSubtree(it, 1)
+        } shouldBe """
+            node<ASTLocalVariableDeclaration> {
+                child<ASTType>(ignoreChildren = true) {}
+                child<ASTVariableDeclarator>(ignoreChildren = true) {}
             }
         """.trimIndent()
     }
 
 
-    test("Child assertions should be prepended to their corresponding child call") {
+
+    test("Child assertions should surround their corresponding child call") {
 
         val dumper = object : TreeDumper<Node>(NodeTreeLikeAdapter) {
 
-            override fun getChildAssertions(node: Node): Map<Int, String> =
-                    if (node is ASTVariableDeclarator) {
-                        mapOf(0 to "it.id shouldBe ",
-                                1 to "it.initializer shouldBe ")
-                    } else emptyMap()
+            override fun getChildCallContexts(parent: Node): Map<Int, Pair<String, String>> =
+                    when (parent) {
+                        is ASTVariableDeclarator -> mapOf(
+                                0 to Pair("it.id shouldBe ", ""),
+                                1 to Pair("it.initializer shouldBe ", "")
+                        )
+                        else                     -> emptyMap()
+                    }
         }
 
         parseStatement("int i = 0;").let {
@@ -110,11 +128,13 @@ class DumperTest : FunSpec({
 
         val dumper = object : TreeDumper<Node>(NodeTreeLikeAdapter) {
 
-            override fun getChildAssertions(node: Node): Map<Int, String> =
-                    when (node) {
-                        is ASTVariableDeclarator -> mapOf(0 to "it.id shouldBe ",
-                                1 to "it.initializer shouldBe ")
-                        else -> emptyMap()
+            override fun getChildCallContexts(parent: Node): Map<Int, Pair<String, String>> =
+                    when (parent) {
+                        is ASTVariableDeclarator -> mapOf(
+                                0 to Pair("it.id shouldBe ", ""),
+                                1 to Pair("it.initializer shouldBe ", "")
+                        )
+                        else                     -> emptyMap()
                     }
 
             override fun getAdditionalAssertions(node: Node): List<String> =
