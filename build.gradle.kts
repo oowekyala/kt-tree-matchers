@@ -24,11 +24,8 @@ plugins {
 val kotlinVersion by extra { "1.3.10" } // sync with above
 val repoAddress = "https://github.com/oowekyala/kt-tree-matchers"
 
-group = "com.github.oowekyala.kt-tree-utils"
+group = "com.github.oowekyala.treeutils.kt"
 version = "2.0"
-
-
-evaluationDependsOnChildren()
 
 
 dependencies {
@@ -44,6 +41,8 @@ subprojects {
 
     val sub = this@subprojects
 
+    sub.group = rootProject.group
+    sub.version = rootProject.version
 
     repositories {
         jcenter()
@@ -69,6 +68,17 @@ subprojects {
 
 
     tasks {
+
+        compileKotlin {
+            kotlinOptions {
+                freeCompilerArgs = listOf("-Xjvm-default=enable")
+                jvmTarget = "1.8"
+            }
+        }
+        compileTestKotlin {
+            kotlinOptions.jvmTarget = "1.8"
+        }
+
         test {
             useJUnitPlatform { }
         }
@@ -101,7 +111,6 @@ subprojects {
 
         publishing {
             publications {
-
 
                 create<MavenPublication>("default") {
                     groupId = sub.group.toString()
