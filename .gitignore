@@ -136,3 +136,8 @@ Supprimerait src/main/java/
 Supprimerait src/main/resources/
 Supprimerait src/test/java/
 Supprimerait src/test/resources/
+Supprimerait tree-matchers/src/main/resources/
+Supprimerait tree-matchers/src/test/resources/
+Supprimerait tree-printers/src/main/resources/
+Supprimerait tree-printers/src/test/java/
+Supprimerait tree-printers/src/test/resources/

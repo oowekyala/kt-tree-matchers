@@ -360,7 +360,13 @@ data class MatchingConfig<H : Any>(
         val adapter: TreeLikeAdapter<H>,
         val errorPrinter: TreePrinter<H>? = DslStructurePrinter(adapter),
         val maxDumpDepth: Int = -1
-)
+) {
+    constructor(
+            adapter: TreeLikeAdapter<H>,
+            errorPrinterMaker: (TreeLikeAdapter<H>) -> TreePrinter<H>?,
+            maxDumpDepth: Int = -1
+    ) : this(adapter, errorPrinterMaker(adapter), maxDumpDepth)
+}
 
 /**
  * Base method to assert that a node of a hierarchy [H] matches the subtree
