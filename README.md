@@ -89,7 +89,7 @@ For example, if your tree type hierarchy is topped by a class named `Node`,
 you should:
 
 * Implement `TreeLikeAdapter<Node>` on some object
-    * Define some shorthand methods, to avoid providing the adapter every time
+* Define some shorthand methods, to avoid providing the adapter every time
 
 Here it is in code:
 
