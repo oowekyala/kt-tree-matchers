@@ -25,7 +25,7 @@ val kotlinVersion by extra { "1.3.10" } // sync with above
 val repoAddress = "https://github.com/oowekyala/kt-tree-matchers"
 
 group = "com.github.oowekyala.treeutils"
-version = "2.0"
+version = "2.0.1"
 
 
 repositories {
