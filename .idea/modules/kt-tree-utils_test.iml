@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<module external.linked.project.id="kt-tree-utils:test" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="com.github.oowekyala.treeutils.kt" external.system.module.type="sourceSet" external.system.module.version="2.0" type="JAVA_MODULE" version="4">
+<module external.linked.project.id="kt-tree-utils:test" external.linked.project.path="$MODULE_DIR$/../.." external.root.project.path="$MODULE_DIR$/../.." external.system.id="GRADLE" external.system.module.group="com.github.oowekyala.treeutils" external.system.module.type="sourceSet" external.system.module.version="2.0" type="JAVA_MODULE" version="4">
   <component name="FacetManager">
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="3" platform="JVM 1.6" useProjectSettings="false">
-        <compilerSettings>
-          <option name="additionalArguments" value="-version -Xjvm-default" />
-        </compilerSettings>
+        <compilerSettings />
         <compilerArguments>
+          <option name="destination" value="$MODULE_DIR$/../../build/classes/kotlin/test" />
+          <option name="noStdlib" value="true" />
+          <option name="noReflect" value="true" />
+          <option name="moduleName" value="kt-tree-utils" />
+          <option name="addCompilerBuiltIns" value="true" />
+          <option name="loadBuiltInsFromDependencies" value="true" />
+          <option name="friendPaths">
+            <array>
+              <option value="$MODULE_DIR$/../../build/classes/kotlin/main" />
+              <option value="$MODULE_DIR$/../../build/classes/java/main" />
+            </array>
+          </option>
           <option name="languageVersion" value="1.3" />
           <option name="apiVersion" value="1.3" />
           <option name="pluginOptions">
@@ -14,11 +24,6 @@
           </option>
           <option name="pluginClasspaths">
             <array />
-          </option>
-          <option name="errors">
-            <ArgumentParseErrors>
-              <option name="argumentWithoutValue" value="-Xjvm-default" />
-            </ArgumentParseErrors>
           </option>
         </compilerArguments>
       </configuration>

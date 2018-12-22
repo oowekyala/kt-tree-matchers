@@ -17,7 +17,6 @@ interface TreeLikeAdapter<H : Any> {
      * Gets the display name of this [node]. This is used
      * for error messages.
      */
-    @JvmDefault
     fun nodeName(node: H): String = nodeName(node::class.java)
 
     /**
@@ -25,7 +24,6 @@ interface TreeLikeAdapter<H : Any> {
      * for error messages. Override if it's different from the simple
      * name of the class.
      */
-    @JvmDefault
     fun nodeName(type: Class<out H>): String = type.simpleName
 
 }

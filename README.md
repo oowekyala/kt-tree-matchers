@@ -4,11 +4,7 @@
 
 This is a lightweight testing DSL to assert that a tree conforms to an
 expected structure. Its focus is to maximise readability and provide
-<<<<<<< HEAD
 detailed error messages. It supports any tree-like structure, you just have
-=======
-good error messages. It supports any tree-like structure, you just have
->>>>>>> ac97792cac5a3f84d0cd1f041a823789a13ca800
 to plug in an adapter.
 
 Jump to the [Setup](#setup) section or take a look at the samples below.
@@ -62,8 +58,8 @@ See also the docs.
 
 ## Setup
 
-You need java 1.8+, but the libraries use your provided dependencies
-instead of shipping a kotlin standard library and kotlin test framework
+You need JDK 1.8+, but the libraries use your provided dependencies
+instead of shipping a kotlin standard library and kotlin test framework.
 
 ### Maven
 
