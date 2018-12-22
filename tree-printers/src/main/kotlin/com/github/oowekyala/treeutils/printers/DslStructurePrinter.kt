@@ -74,7 +74,17 @@ open class DslStructurePrinter<H : Any>(
      */
     protected open fun getChildCallContexts(parent: H): Map<Int, Pair<String, String>> = emptyMap()
 
-    protected open fun customChildAssertion(parent: H, child: H): String? = null
+    /**
+     * Returns a custom assertion that should be used for the [child] in the [parent].
+     * If not null, the returned string replaces the call to [TreeNodeWrapper.child],
+     * and [getChildCallContexts] is ignored. If null then [getChildCallContexts] is
+     * honored. Use this to e.g. replace an assertion for a subtree of a particular
+     * form by a custom assertion method. Be aware that if the assertion returned
+     * doesn't call [TreeNodeWrapper.child] on [parent] (which is implicit receiver
+     * in the scope of the returned string) exactly once, then the structure will
+     * be wrong.
+     */
+    protected open fun getCustomChildAssertion(parent: H, child: H): String? = null
 
     /**
      * Returns the string that will be prepended to the opening brace
@@ -170,7 +180,13 @@ open class DslStructurePrinter<H : Any>(
                     }
                 }
 
+                getCustomChildAssertion(node, child)?.let {
+                    builder.append(it)
+                    return@forEachIndexed // continue
+                }
+
                 val (prefix, suffix) = childAssertions[i] ?: Pair("", "")
+
 
                 appendExternal(prefix)
 

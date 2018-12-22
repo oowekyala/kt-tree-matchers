@@ -3,6 +3,8 @@ package com.github.oowekyala.treeutils.printers
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import net.sourceforge.pmd.lang.ast.Node
+import net.sourceforge.pmd.lang.java.ast.ASTPrimitiveType
+import net.sourceforge.pmd.lang.java.ast.ASTType
 import net.sourceforge.pmd.lang.java.ast.ASTVariableDeclarator
 import net.sourceforge.pmd.lang.java.ast.ASTVariableDeclaratorId
 
@@ -158,6 +160,59 @@ class DslPrinterTest : FunSpec({
                     }
 
                     it.initializer shouldBe child<ASTVariableInitializer> {
+                        child<ASTExpression> {
+                            child<ASTPrimaryExpression> {
+                                child<ASTPrimaryPrefix> {
+                                    child<ASTLiteral> {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        """.trimIndent()
+    }
+
+
+    test("Custom child assertion should override child call context and replace child call") {
+
+        val dumper = object : DslStructurePrinter<Node>(NodeTreeLikeAdapter) {
+
+            override fun getCustomChildAssertion(parent: Node, child: Node): String? {
+                return when (child) {
+                    is ASTPrimitiveType -> "primitive(${child.image})"
+                    else                -> null
+                }
+            }
+
+            override fun getChildCallContexts(parent: Node): Map<Int, Pair<String, String>> =
+                    when (parent) {
+                        is ASTType -> mapOf(
+                                0 to Pair("it.id shouldBe ", "")
+                        )
+                        else                     -> emptyMap()
+                    }
+
+            override fun getAdditionalAssertions(node: Node): List<String> =
+                    when (node) {
+                        is ASTPrimitiveType -> listOf("it.image shouldBe \"${node.image}\"")
+                        is ASTType -> listOf("it.myFu shouldBe \"${node.image}\"")
+                        else                       -> emptyList()
+                    }
+        }
+
+        parseStatement("int i = 0;").let {
+            dumper.dumpSubtree(it)
+        } shouldBe """
+            node<ASTLocalVariableDeclaration> {
+                child<ASTType> {
+                    it.myFu shouldBe "null"
+
+                    primitive(int)
+                }
+                child<ASTVariableDeclarator> {
+                    child<ASTVariableDeclaratorId> {}
+                    child<ASTVariableInitializer> {
                         child<ASTExpression> {
                             child<ASTPrimaryExpression> {
                                 child<ASTPrimaryPrefix> {
