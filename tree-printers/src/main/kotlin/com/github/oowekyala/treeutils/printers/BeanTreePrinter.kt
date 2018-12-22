@@ -125,11 +125,7 @@ abstract class BeanTreePrinter<H : Any>(adapter: TreeLikeAdapter<H>) : DslStruct
      */
     protected open fun valueToString(value: Any?): String? {
         return when (value) {
-            is String                   ->
-                value.replace("\"".toRegex(), "\\\"")
-                        // escape kt string interpolators
-                        .replace("\\$(?=[a-zA-Z{])".toRegex(), "\\\${'\\$'}")
-                        .let { "\"$it\"" }
+            is String                   -> stringToKotlinString(value)
             is Char                     -> '\''.toString() + value.toString().replace("'".toRegex(), "\\'") + '\''.toString()
             is Enum<*>                  -> value.enumDeclaringClass.canonicalName + "." + value.name
             is Class<*>                 -> value.canonicalName?.let { "$it::class.java" }
@@ -137,6 +133,14 @@ abstract class BeanTreePrinter<H : Any>(adapter: TreeLikeAdapter<H>) : DslStruct
             else                        -> null
         }
     }
+
+    private fun stringToKotlinString(string: String) = string.replace("\"".toRegex(), "\\\"")
+            // escape kt string interpolators
+            .replace("\\$(?=[a-zA-Z{])".toRegex(), "\\\${'\\$'}")
+            .let {
+                if (it.contains('\n')) "\"\"\"$it\"\"\""
+                else "\"$it\""
+            }
 
     private companion object {
 

@@ -1,5 +1,7 @@
 package com.github.oowekyala.treeutils.printers
 
+import com.github.oowekyala.treeutils.printers.dummytree.DummyAdapter
+import com.github.oowekyala.treeutils.printers.dummytree.DummyTree
 import io.kotlintest.shouldBe
 import io.kotlintest.specs.FunSpec
 import net.sourceforge.pmd.lang.ast.Node
@@ -104,6 +106,35 @@ class KotlintestBeanTreePrinterTest : FunSpec({
                     it.typeImage shouldBe "int"
                 }
                 child<ASTVariableDeclarator>(ignoreChildren = true) {}
+            }
+        """.trimIndent()
+    }
+
+    test("String properties with multiline expected value should produce raw strings") {
+
+        val dumper = KotlintestBeanTreePrinter(DummyAdapter)
+
+        val tree = DummyTree.MultiChildNode(
+                DummyTree.PrefixNode("fo\n\no", DummyTree.StringLeaf("bar")),
+                DummyTree.StringLeaf("hendek!")
+        )
+
+
+
+        dumper.dumpSubtree(tree) shouldBe """
+            node<MultiChildNode> {
+                child<PrefixNode> {
+                    it.myPrefix shouldBe ""${'"'}fo
+
+            o""${'"'}
+
+                    it.child shouldBe child<StringLeaf> {
+                        it.myText shouldBe "bar"
+                    }
+                }
+                child<StringLeaf> {
+                    it.myText shouldBe "hendek!"
+                }
             }
         """.trimIndent()
     }

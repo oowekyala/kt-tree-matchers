@@ -32,7 +32,7 @@ open class DslStructurePrinter<H : Any>(
      *
      * @param node Node to get the assertions for.
      */
-    open fun getAdditionalAssertions(node: H): List<String> = emptyList()
+    protected open fun getAdditionalAssertions(node: H): List<String> = emptyList()
 
     /**
      * Returns a map of the contexts surrounding the nodespec dumps
@@ -72,7 +72,9 @@ open class DslStructurePrinter<H : Any>(
      * @param parent Node to get the assertions for.
      *
      */
-    open fun getChildCallContexts(parent: H): Map<Int, Pair<String, String>> = emptyMap()
+    protected open fun getChildCallContexts(parent: H): Map<Int, Pair<String, String>> = emptyMap()
+
+    protected open fun customChildAssertion(parent: H, child: H): String? = null
 
     /**
      * Returns the string that will be prepended to the opening brace
@@ -85,7 +87,7 @@ open class DslStructurePrinter<H : Any>(
      * on [dumpSubtree]), in which case you may want to add a parameter like `(ignoreChildren = true)`
      *
      */
-    open fun getRootSpecPrefix(node: H, shouldOnlyDumpRoot: Boolean) = getRootMatchingMethodName(node) + getRootMatchingMethodArguments(node, shouldOnlyDumpRoot)
+    protected open fun getRootSpecPrefix(node: H, shouldOnlyDumpRoot: Boolean) = getRootMatchingMethodName(node) + getRootMatchingMethodArguments(node, shouldOnlyDumpRoot)
 
     /**
      * Returns the parameters and type arguments that will be
@@ -103,7 +105,7 @@ open class DslStructurePrinter<H : Any>(
      * on [dumpSubtree]), in which case you may want to add a parameter like `(ignoreChildren = true)`
      *
      */
-    open fun getRootMatchingMethodArguments(node: H, shouldOnlyDumpRoot: Boolean): String =
+    protected open fun getRootMatchingMethodArguments(node: H, shouldOnlyDumpRoot: Boolean): String =
             "<${node.javaClass.simpleName}>" +
             if (shouldOnlyDumpRoot) "(ignoreChildren = true)" else ""
 
@@ -113,7 +115,7 @@ open class DslStructurePrinter<H : Any>(
      * to keep the default version of [getRootMatchingMethodArguments]
      * but just change the method name. By default this is `"node"`.
      */
-    open fun getRootMatchingMethodName(node: H) = "node"
+    protected open fun getRootMatchingMethodName(node: H) = "node"
 
     /**
      * Dumps the given subtree to its DSL node spec.
