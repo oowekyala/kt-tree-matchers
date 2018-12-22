@@ -1,4 +1,4 @@
-[![](https://img.shields.io/maven-central/v/com.github.oowekyala/kt-tree-matchers.svg)](https://search.maven.org/artifact/com.github.oowekyala/kt-tree-matchers/1.0/jar)
+[![](https://img.shields.io/maven-central/v/com.github.oowekyala.treeutils/tree-matchers.svg)](https://search.maven.org/artifact/com.github.oowekyala.treeutils/tree-matchers/2.0.1/jar)
 
 # Tree Matchers for Kotlin tests
 
@@ -54,7 +54,7 @@ node should matchNode<ASTStatement> {
 ```
 
 
-See also the docs.
+See also the Kotlin docs.
 
 ## Setup
 
@@ -65,22 +65,22 @@ instead of shipping a kotlin standard library and kotlin test framework.
 
 ```xml
 <dependency>
-  <groupId>com.github.oowekyala</groupId>
-  <artifactId>kt-tree-matchers</artifactId>
-  <version>1.0</version>
+  <groupId>com.github.oowekyala.treeutils</groupId>
+  <artifactId>tree-matchers</artifactId>
+  <version>2.0.1</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-   implementation 'com.github.oowekyala:kt-tree-matchers:1.0'
+   implementation 'com.github.oowekyala.treeutils:tree-matchers:2.0.1'
 ```
 
 or with the Kotlin DSL:
 
 ```kotlin
-   implementation("com.github.oowekyala:kt-tree-matchers:1.0")
+   implementation("com.github.oowekyala.treeutils:tree-matchers:2.0.1")
 ```
 
 ### Provide an adapter
