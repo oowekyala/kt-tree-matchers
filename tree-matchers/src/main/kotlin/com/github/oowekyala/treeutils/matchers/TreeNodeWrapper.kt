@@ -5,7 +5,7 @@ import com.github.oowekyala.treeutils.TreeLikeAdapter
 import com.github.oowekyala.treeutils.printers.DslStructurePrinter
 import com.github.oowekyala.treeutils.printers.TreePrinter
 import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.asserter
 import kotlin.text.RegexOption.DOT_MATCHES_ALL
 
 /**
@@ -141,14 +141,12 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
     }
 
     private fun checkChildExists(childIdx: Int) =
-            assertTrue(
-                    formatErrorMessage(
-                            myMatchingConfig,
-                            myParentPath,
-                            "Node has fewer children than expected, child #$childIdx doesn't exist"
-                    )
-            ) {
-                childIdx in 0..myChildren.size
+            lazyAssertTrue(childIdx in 0..myChildren.size) {
+                formatErrorMessage(
+                        myMatchingConfig,
+                        myParentPath,
+                        "Node has fewer children than expected, child #$childIdx doesn't exist"
+                )
             }
 
     /**
@@ -298,32 +296,27 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
                 else -> "child #${parentPath.last().myChildren.indexOf(toWrap)}"
             }
 
-            assertTrue(
-                    formatErrorMessage(
-                            matchingConfig,
-                            parentPath,
-                            "Expected $nodeNameForMsg to have type ${matchingConfig.adapter.nodeName(childType)}, actual ${matchingConfig.adapter.nodeName(
-                                    toWrap.javaClass
-                            )}"
-                    )
-            ) {
-                childType.isInstance(toWrap)
+            lazyAssertTrue(childType.isInstance(toWrap)) {
+                formatErrorMessage(
+                        matchingConfig,
+                        parentPath,
+                        "Expected $nodeNameForMsg to have type ${matchingConfig.adapter.nodeName(childType)}, " +
+                                "actual ${matchingConfig.adapter.nodeName(toWrap.javaClass)}"
+                )
             }
 
             if (parentPath.isNotEmpty() && matchingConfig.adapter is DoublyLinkedTreeLikeAdapter) {
 
                 val childParent = matchingConfig.adapter.getParent(toWrap)
 
-                assertTrue(
-                        formatErrorMessage(
-                                matchingConfig,
-                                parentPath,
-                                "Expected $nodeNameForMsg to have parent " +
-                                        "${matchingConfig.adapter.nodeName(parentPath.last().it)}, actual " +
-                                        "${childParent?.let { matchingConfig.adapter.nodeName(childParent.javaClass) }}"
-                        )
-                ) {
-                    childParent == parentPath.last().it
+                lazyAssertTrue(childParent == parentPath.last().it) {
+                    formatErrorMessage(
+                            matchingConfig,
+                            parentPath,
+                            "Expected $nodeNameForMsg to have parent " +
+                                    "${matchingConfig.adapter.nodeName(parentPath.last().it)}, actual " +
+                                    "${childParent?.let { matchingConfig.adapter.nodeName(childParent.javaClass) }}"
+                    )
                 }
 
             }
@@ -350,14 +343,12 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
                 throw e
             }
 
-            assertFalse(
-                    formatErrorMessage(
-                            matchingConfig,
-                            wrapper.pathToMe,
-                            "Wrong number of children, expected ${wrapper.nextChildMatcherIdx}, actual ${wrapper.myNumChildren}"
-                    )
-            ) {
-                !ignoreChildrenMatchers && wrapper.nextChildMatcherIdx != wrapper.myNumChildren
+            lazyAssertFalse(!ignoreChildrenMatchers && wrapper.nextChildMatcherIdx != wrapper.myNumChildren) {
+                formatErrorMessage(
+                        matchingConfig,
+                        wrapper.pathToMe,
+                        "Wrong number of children, expected ${wrapper.nextChildMatcherIdx}, actual ${wrapper.myNumChildren}"
+                )
             }
             return ret
         }
@@ -393,6 +384,14 @@ data class MatchingConfig<H : Any>(
             implicitAssertions: (H) -> Unit = {}
     ) : this(adapter, errorPrinterMaker(adapter), maxDumpDepth)
 }
+
+// building the error messages is costly so best avoid it
+private fun lazyAssertTrue(condition: Boolean, lazyMessage: () -> String?): Unit =
+        asserter.assertTrue(lazyMessage, condition)
+
+private fun lazyAssertFalse(condition: Boolean, lazyMessage: () -> String?): Unit =
+        asserter.assertTrue(lazyMessage, !condition)
+
 
 /**
  * Base method to assert that a node of a hierarchy [H] matches the subtree
