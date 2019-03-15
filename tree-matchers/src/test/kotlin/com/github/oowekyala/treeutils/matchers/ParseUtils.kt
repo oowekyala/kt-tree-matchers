@@ -37,9 +37,14 @@ object NodeTreeLikeAdapter : DoublyLinkedTreeLikeAdapter<Node> {
 inline fun <reified N : Node> matchNode(
         errorPrinter: TreePrinter<Node>? = DslStructurePrinter(NodeTreeLikeAdapter),
         ignoreChildren: Boolean = false,
+        noinline implicitAssertions: (Node) -> Unit = {},
         noinline nodeSpec: TreeNodeWrapper<Node, N>.() -> Unit
 ): (Node?) -> Unit = {
-    val myConfig = MatchingConfig(adapter = NodeTreeLikeAdapter, errorPrinter = errorPrinter)
+    val myConfig = MatchingConfig(
+            adapter = NodeTreeLikeAdapter,
+            errorPrinter = errorPrinter,
+            implicitAssertions = implicitAssertions
+    )
     it.baseShouldMatchSubtree(myConfig, ignoreChildren, nodeSpec)
 }
 

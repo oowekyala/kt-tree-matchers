@@ -334,7 +334,9 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
             val wrapper = TreeNodeWrapper(m, matchingConfig, parentPath, ignoreChildrenMatchers)
 
             val ret: R = try {
-                wrapper.spec()
+                val r = wrapper.spec()
+                matchingConfig.implicitAssertions(m)
+                r
             } catch (e: AssertionError) {
                 if (e.message?.matches("At (/.*?|<root>):.*".toRegex(DOT_MATCHES_ALL)) == false) {
                     // the exception has no path, let's add one
@@ -374,16 +376,21 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
  * @param maxDumpDepth The maximum depth to which the pretty printer will dump nodes.
  * A value of zero only dumps the root node. A negative value dumps the whole subtree.
  * By default the whole subtree is dumped.
+ *
+ * @param implicitAssertions Assertions that are executed at the end of
+ * every node matcher. The default does nothing
  */
 data class MatchingConfig<H : Any>(
         val adapter: TreeLikeAdapter<H>,
         val errorPrinter: TreePrinter<H>? = DslStructurePrinter(adapter),
-        val maxDumpDepth: Int = -1
+        val maxDumpDepth: Int = -1,
+        val implicitAssertions: (H) -> Unit = {}
 ) {
     constructor(
             adapter: TreeLikeAdapter<H>,
             errorPrinterMaker: (TreeLikeAdapter<H>) -> TreePrinter<H>?,
-            maxDumpDepth: Int = -1
+            maxDumpDepth: Int = -1,
+            implicitAssertions: (H) -> Unit = {}
     ) : this(adapter, errorPrinterMaker(adapter), maxDumpDepth)
 }
 

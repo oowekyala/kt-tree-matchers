@@ -4,6 +4,7 @@ import io.kotlintest.should
 import io.kotlintest.shouldBe
 import io.kotlintest.shouldThrow
 import io.kotlintest.specs.FunSpec
+import net.sourceforge.pmd.lang.ast.Node
 import net.sourceforge.pmd.lang.java.ast.*
 
 class DslTest : FunSpec({
@@ -141,6 +142,28 @@ class DslTest : FunSpec({
 
             unspecifiedChild()
         }
+    }
+
+    test("Implicit assertions should be executed for each node") {
+
+        var invocCount = 0
+
+        val implicitAssertions: (Node) -> Unit = {
+            invocCount++
+        }
+
+        parseStatement("int[] i = 0;") should matchNode<ASTLocalVariableDeclaration>(implicitAssertions = implicitAssertions) {
+            // here
+
+            child<ASTType> {
+                // and here
+                unspecifiedChild()
+            }
+
+            unspecifiedChild()
+        }
+
+        invocCount shouldBe 2
     }
 
     failureTest("Child assertions should have a node path",
