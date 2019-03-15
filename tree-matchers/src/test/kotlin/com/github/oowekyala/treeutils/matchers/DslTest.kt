@@ -127,6 +127,22 @@ class DslTest : FunSpec({
         }
     }
 
+    failureTest("An assertion should be emitted for the parent",
+            messageContains = setOf("expected", "to have parent")) {
+
+        parseStatement("int[] i = 0;") should matchNode<ASTLocalVariableDeclaration> {
+
+            it.jjtGetChild(0).jjtSetParent(null) // break the parent
+
+            child<ASTType> {
+                // this fails
+                unspecifiedChild()
+            }
+
+            unspecifiedChild()
+        }
+    }
+
     failureTest("Child assertions should have a node path",
             messageContains = setOf("At /LocalVariableDeclaration/Type:", "expected", "type", "LambdaExpression")) {
 

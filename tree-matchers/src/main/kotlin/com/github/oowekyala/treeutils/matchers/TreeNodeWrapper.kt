@@ -1,5 +1,6 @@
 package com.github.oowekyala.treeutils.matchers
 
+import com.github.oowekyala.treeutils.DoublyLinkedTreeLikeAdapter
 import com.github.oowekyala.treeutils.TreeLikeAdapter
 import com.github.oowekyala.treeutils.printers.DslStructurePrinter
 import com.github.oowekyala.treeutils.printers.TreePrinter
@@ -307,6 +308,24 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
                     )
             ) {
                 childType.isInstance(toWrap)
+            }
+
+            if (parentPath.isNotEmpty() && matchingConfig.adapter is DoublyLinkedTreeLikeAdapter) {
+
+                val childParent = matchingConfig.adapter.getParent(toWrap)
+
+                assertTrue(
+                        formatErrorMessage(
+                                matchingConfig,
+                                parentPath,
+                                "Expected $nodeNameForMsg to have parent " +
+                                        "${matchingConfig.adapter.nodeName(parentPath.last().it)}, actual " +
+                                        "${childParent?.let { matchingConfig.adapter.nodeName(childParent.javaClass) }}"
+                        )
+                ) {
+                    childParent == parentPath.last().it
+                }
+
             }
 
             @Suppress("UNCHECKED_CAST")

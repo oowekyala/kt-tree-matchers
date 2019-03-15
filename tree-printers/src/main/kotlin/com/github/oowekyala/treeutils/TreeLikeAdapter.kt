@@ -27,3 +27,14 @@ interface TreeLikeAdapter<H : Any> {
     fun nodeName(type: Class<out H>): String = type.simpleName
 
 }
+
+/**
+ * A [TreeLikeAdapter] where each node has a reference to its parent.
+ */
+interface DoublyLinkedTreeLikeAdapter<H : Any> : TreeLikeAdapter<H> {
+    /**
+     * Returns the parent of the node. This is used to emit
+     * an assertion within child calls.
+     */
+    fun getParent(node: H): H?
+}
