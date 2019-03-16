@@ -141,7 +141,7 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
     }
 
     private fun checkChildExists(childIdx: Int) =
-            lazyAssertTrue(childIdx in 0..myChildren.size) {
+            lazyAssertTrue(childIdx in myChildren.indices) {
                 formatErrorMessage(
                         myMatchingConfig,
                         myParentPath,
