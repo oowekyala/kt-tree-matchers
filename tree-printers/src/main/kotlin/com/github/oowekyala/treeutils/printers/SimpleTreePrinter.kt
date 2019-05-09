@@ -1,12 +1,13 @@
 package com.github.oowekyala.treeutils.printers
 
 import com.github.oowekyala.treeutils.TreeLikeAdapter
+import com.github.oowekyala.treeutils.TreeLikeAdapterUser
 import java.util.*
 
 /**
  * @author Clément Fournier
  */
-open class SimpleTreePrinter<H : Any>(protected val adapter: TreeLikeAdapter<H>) : TreePrinter<H> {
+open class SimpleTreePrinter<H : Any>(override val adapter: TreeLikeAdapter<H>) : TreePrinter<H>, TreeLikeAdapterUser<H> {
 
 
     /**
@@ -21,7 +22,7 @@ open class SimpleTreePrinter<H : Any>(protected val adapter: TreeLikeAdapter<H>)
         it.printInnerNode(node, 0, maxDumpDepth, Stack<Boolean>().also { it += false })
     }.toString()
 
-    protected open fun StringBuilder.appendSingleNode(node: H): StringBuilder = append(adapter.nodeName(node))
+    protected open fun StringBuilder.appendSingleNode(node: H): StringBuilder = append(node.nodeName)
     protected open fun StringBuilder.appendBoundaryForNode(node: H, level: Int, hasFollower: List<Boolean>): StringBuilder {
 
         appendIndent(level + 1, hasFollower)
@@ -47,11 +48,11 @@ open class SimpleTreePrinter<H : Any>(protected val adapter: TreeLikeAdapter<H>)
                                              hasFollower: Stack<Boolean>) {
         appendIndent(level, hasFollower).appendSingleNode(node).append("\n")
 
-        if (level == maxLevel && adapter.numChildren(node) > 0) {
+        if (level == maxLevel && node.numChildren > 0) {
             appendBoundaryForNode(node, level, hasFollower)
         } else {
-            val n = adapter.numChildren(node)
-            adapter.getChildren(node).forEachIndexed { i, child ->
+            val n = node.numChildren
+            node.children.forEachIndexed { i, child ->
                 hasFollower.push(i < n - 1)
                 printInnerNode(child, level + 1, maxLevel, hasFollower)
                 hasFollower.pop()
