@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id=":tree-printers" external.linked.project.path="$MODULE_DIR$/../../../tree-printers" external.root.project.path="$MODULE_DIR$/../../.." external.system.id="GRADLE" external.system.module.group="com.github.oowekyala.treeutils" external.system.module.version="2.0.2" type="JAVA_MODULE" version="4">
+  <component name="ExternalSystem" externalSystem="GRADLE" externalSystemModuleGroup="com.github.oowekyala.treeutils" externalSystemModuleVersion="2.0.2" linkedProjectId=":tree-printers" linkedProjectPath="$MODULE_DIR$/../../../tree-printers" rootProjectPath="$MODULE_DIR$/../../.." />
   <component name="FacetManager">
     <facet type="kotlin-language" name="Kotlin">
       <configuration version="3" platform="JVM 1.8" useProjectSettings="false">

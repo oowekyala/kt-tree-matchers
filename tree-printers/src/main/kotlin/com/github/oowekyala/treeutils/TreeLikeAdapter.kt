@@ -26,7 +26,15 @@ interface TreeLikeAdapter<H : Any> {
      */
     fun nodeName(type: Class<out H>): String = type.simpleName
 
+
+    /**
+     * Returns the number of children of the [node].
+     */
+    fun numChildren(node: H): Int = getChildren(node).size
+
 }
+
+fun <H : Any> TreeLikeAdapter<H>.isLeaf(node: H) = numChildren(node) == 0
 
 /**
  * A [TreeLikeAdapter] where each node has a reference to its parent.

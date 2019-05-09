@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/kt-tree-utils.iml" filepath="$PROJECT_DIR$/.idea/modules/kt-tree-utils.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree-matchers/tree-matchers.iml" filepath="$PROJECT_DIR$/.idea/modules/tree-matchers/tree-matchers.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree-printers/tree-printers.iml" filepath="$PROJECT_DIR$/.idea/modules/tree-printers/tree-printers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/kt-tree-utils.iml" filepath="$PROJECT_DIR$/.idea/modules/kt-tree-utils.iml" group="kt-tree-utils" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree-matchers/tree-matchers.iml" filepath="$PROJECT_DIR$/.idea/modules/tree-matchers/tree-matchers.iml" group="kt-tree-utils/tree-matchers" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/tree-printers/tree-printers.iml" filepath="$PROJECT_DIR$/.idea/modules/tree-printers/tree-printers.iml" group="kt-tree-utils/tree-printers" />
     </modules>
   </component>
 </project>
