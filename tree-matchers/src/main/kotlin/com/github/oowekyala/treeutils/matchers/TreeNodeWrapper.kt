@@ -163,7 +163,7 @@ class TreeNodeWrapper<H : Any, N : H> private constructor(
      * Specify that the next child will only be tested for existence,
      * but not for type, or anything else.
      */
-    fun unspecifiedChild() = unspecifiedChildren(1)
+    fun unspecifiedChild(): H = shiftChild(1).also { checkChildExists(nextChildMatcherIdx - 1) }
 
     /**
      * Specify that the next child will be tested against the assertions
