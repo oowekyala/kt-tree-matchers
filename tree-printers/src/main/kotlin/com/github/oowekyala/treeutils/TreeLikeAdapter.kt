@@ -58,6 +58,8 @@ interface DoublyLinkedTreeLikeAdapter<H : Any> : TreeLikeAdapter<H> {
 
     /**
      * Returns the index of this node in the children of its parent.
+     * The default implementation is very inefficient, if you have a
+     * better one you should probably use it.
      */
     fun getChildIndex(node: H): Int {
         return getChildren(getParent(node) ?: return -1).indexOf(node)
