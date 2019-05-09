@@ -1,13 +1,13 @@
 package com.github.oowekyala.treeutils.printers
 
 import com.github.oowekyala.treeutils.TreeLikeAdapter
-import com.github.oowekyala.treeutils.TreeLikeAdapterUser
+import com.github.oowekyala.treeutils.TreeLikeExtensions
 import java.util.*
 
 /**
  * @author Clément Fournier
  */
-open class SimpleTreePrinter<H : Any>(override val adapter: TreeLikeAdapter<H>) : TreePrinter<H>, TreeLikeAdapterUser<H> {
+open class SimpleTreePrinter<H : Any>(override val adapter: TreeLikeAdapter<H>) : TreePrinter<H>, TreeLikeExtensions<H> {
 
 
     /**
