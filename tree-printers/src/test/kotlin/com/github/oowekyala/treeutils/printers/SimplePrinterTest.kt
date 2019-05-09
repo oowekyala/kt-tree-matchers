@@ -18,15 +18,15 @@ class SimplePrinterTest : FunSpec({
             dumper.dumpSubtree(it)
         } shouldBe """
 +--LocalVariableDeclaration
-|  +--Type
-|  |  +--PrimitiveType
-|  +--VariableDeclarator
-|  |  +--VariableDeclaratorId
-|  |  +--VariableInitializer
-|  |  |  +--Expression
-|  |  |  |  +--PrimaryExpression
-|  |  |  |  |  +--PrimaryPrefix
-|  |  |  |  |  |  +--Literal
+   +--Type
+   |  +--PrimitiveType
+   +--VariableDeclarator
+      +--VariableDeclaratorId
+      +--VariableInitializer
+         +--Expression
+            +--PrimaryExpression
+               +--PrimaryPrefix
+                  +--Literal
 
         """.trimIndent()
     }
@@ -38,10 +38,10 @@ class SimplePrinterTest : FunSpec({
             dumper.dumpSubtree(it, 1)
         } shouldBe """
 +--LocalVariableDeclaration
-|  +--Type
-|  |  +--1 child is not shown
-|  +--VariableDeclarator
-|  |  +--2 children are not shown
+   +--Type
+   |  +--1 child is not shown
+   +--VariableDeclarator
+      +--2 children are not shown
 
         """.trimIndent()
     }
@@ -52,7 +52,8 @@ class SimplePrinterTest : FunSpec({
             dumper.dumpSubtree(it, 0)
         } shouldBe """
             +--LocalVariableDeclaration
-            |  +--2 children are not shown
+               +--2 children are not shown
+
         """.trimIndent()
     }
 
@@ -62,10 +63,11 @@ class SimplePrinterTest : FunSpec({
             dumper.dumpSubtree(it, 1)
         } shouldBe """
             +--LocalVariableDeclaration
-            |  +--Type
-            |  |  +--1 child is not shown
-            |  +--VariableDeclarator
-            |  |  +--2 children are not shown
+               +--Type
+               |  +--1 child is not shown
+               +--VariableDeclarator
+                  +--2 children are not shown
+
         """.trimIndent()
     }
 
