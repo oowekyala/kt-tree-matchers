@@ -2,7 +2,7 @@ package com.github.oowekyala.treeutils
 
 /**
  * Trait allowing using the methods of the adapter as extensions.
- * Implement it in an object.
+ * Mostly here for convenience.
  *
  * @param H Top level type of the hierarchy
  */
