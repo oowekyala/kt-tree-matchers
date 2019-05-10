@@ -67,20 +67,20 @@ instead of shipping a kotlin standard library and kotlin test framework.
 <dependency>
   <groupId>com.github.oowekyala.treeutils</groupId>
   <artifactId>tree-matchers</artifactId>
-  <version>2.0.1</version>
+  <version>2.1.0</version>
 </dependency>
 ```
 
 ### Gradle
 
 ```groovy
-   implementation 'com.github.oowekyala.treeutils:tree-matchers:2.0.1'
+   implementation 'com.github.oowekyala.treeutils:tree-matchers:2.1.0'
 ```
 
 or with the Kotlin DSL:
 
 ```kotlin
-   implementation("com.github.oowekyala.treeutils:tree-matchers:2.0.1")
+   implementation("com.github.oowekyala.treeutils:tree-matchers:2.1.0")
 ```
 
 ### Provide an adapter
