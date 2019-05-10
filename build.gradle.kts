@@ -1,17 +1,9 @@
-import io.codearte.gradle.nexus.NexusStagingPlugin
-import org.gradle.api.publish.maven.MavenPom
-import org.gradle.kotlin.dsl.accessors.kotlinTypeStringFor
 import org.jetbrains.dokka.gradle.DokkaPlugin
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.dokka.gradle.LinkMapping
-import org.jetbrains.dokka.gradle.SourceRoot
 import org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper
-import org.jetbrains.kotlin.util.capitalizeDecapitalize.capitalizeFirstWord
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
-import java.util.Date
-import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     kotlin("jvm") version "1.3.10"
