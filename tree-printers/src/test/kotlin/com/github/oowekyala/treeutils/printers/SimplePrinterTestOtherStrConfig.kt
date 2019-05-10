@@ -7,9 +7,9 @@ import io.kotlintest.specs.FunSpec
  * @author Clément Fournier
  * @since 1.0
  */
-class SimplePrinterTest : FunSpec({
+class SimplePrinterTestOtherStrConfig : FunSpec({
 
-    val dumper = SimpleTreePrinter(NodeTreeLikeAdapter)
+    val dumper = SimpleTreePrinter(NodeTreeLikeAdapter, SimpleTreePrinter.UnicodeStrings)
 
 
     test("Default dumper should dump the whole tree structure") {
@@ -17,16 +17,16 @@ class SimplePrinterTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it)
         } shouldBe """
-+-- LocalVariableDeclaration
-    +-- Type
-    |   +-- PrimitiveType
-    +-- VariableDeclarator
-        +-- VariableDeclaratorId
-        +-- VariableInitializer
-            +-- Expression
-                +-- PrimaryExpression
-                    +-- PrimaryPrefix
-                        +-- Literal
+└── LocalVariableDeclaration
+    ├── Type
+    │   └── PrimitiveType
+    └── VariableDeclarator
+        ├── VariableDeclaratorId
+        └── VariableInitializer
+            └── Expression
+                └── PrimaryExpression
+                    └── PrimaryPrefix
+                        └── Literal
 
         """.trimIndent()
     }
@@ -37,11 +37,11 @@ class SimplePrinterTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 1)
         } shouldBe """
-+-- LocalVariableDeclaration
-    +-- Type
-    |   +-- 1 child is not shown
-    +-- VariableDeclarator
-        +-- 2 children are not shown
+└── LocalVariableDeclaration
+    ├── Type
+    │   └── 1 child is not shown
+    └── VariableDeclarator
+        └── 2 children are not shown
 
         """.trimIndent()
     }
@@ -51,8 +51,8 @@ class SimplePrinterTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 0)
         } shouldBe """
-            +-- LocalVariableDeclaration
-                +-- 2 children are not shown
+      └── LocalVariableDeclaration
+          └── 2 children are not shown
 
         """.trimIndent()
     }
@@ -62,15 +62,14 @@ class SimplePrinterTest : FunSpec({
         parseStatement("int i = 0;").let {
             dumper.dumpSubtree(it, 1)
         } shouldBe """
-            +-- LocalVariableDeclaration
-                +-- Type
-                |   +-- 1 child is not shown
-                +-- VariableDeclarator
-                    +-- 2 children are not shown
+            └── LocalVariableDeclaration
+                ├── Type
+                │   └── 1 child is not shown
+                └── VariableDeclarator
+                    └── 2 children are not shown
 
         """.trimIndent()
     }
-
 
 
 })

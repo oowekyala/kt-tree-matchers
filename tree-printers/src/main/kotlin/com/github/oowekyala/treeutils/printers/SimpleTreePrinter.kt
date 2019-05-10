@@ -2,29 +2,57 @@ package com.github.oowekyala.treeutils.printers
 
 import com.github.oowekyala.treeutils.TreeLikeAdapter
 import com.github.oowekyala.treeutils.TreeLikeExtensions
-import java.util.*
 
 /**
  * A simple recursive printer that can output stuff like:
  *
- *   +--LocalVariableDeclaration
- *      +--Type
- *      |  +--PrimitiveType
- *      +--VariableDeclarator
- *         +--VariableDeclaratorId
- *         +--VariableInitializer
- *            +--1 child not shown
+ *    +-- LocalVariableDeclaration
+ *        +-- Type
+ *        |   +-- PrimitiveType
+ *        +-- VariableDeclarator
+ *            +-- VariableDeclaratorId
+ *            +-- VariableInitializer
+ *                +-- 1 child not shown
+ *
+ * with [AsciiStrings], or
+ *
+ *           └── LocalVariableDeclaration
+ *               ├── Type
+ *               │   └── PrimitiveType
+ *               └── VariableDeclarator
+ *                   ├── VariableDeclaratorId
+ *                   └── VariableInitializer
+ *                       └── 1 child not shown
+ *
+ * with [UnicodeStrings].
  *
  * By default just prints the structure, like shown above. You can
  * configure it to render nodes differently by overriding [appendSingleNode].
  *
  * @author Clément Fournier
  */
-open class SimpleTreePrinter<H : Any>(override val adapter: TreeLikeAdapter<H>) : TreePrinter<H>, TreeLikeExtensions<H> {
+open class SimpleTreePrinter<H : Any>(
+        override val adapter: TreeLikeAdapter<H>,
+        protected val str: StringConfig = AsciiStrings
+) : TreePrinter<H>, TreeLikeExtensions<H> {
 
+    /**
+     * Set of strings used to render the edges of the tree.
+     * All strings should have the same length.
+     */
+    data class StringConfig(
+            /** Prefix of a child node that has a following sibling. */
+            val fork: String,
+            /** Prefix of a child node that has no following sibling. */
+            val tailFork: String,
+            /** Vertical edge. */
+            val verticalEdge: String,
+            /** Horizontal blank. */
+            val gap: String
+    )
 
     override fun dumpSubtree(node: H, maxDumpDepth: Int): String = StringBuilder().also {
-        it.printInnerNode(node, 0, maxDumpDepth, Stack<Boolean>().also { it += false })
+        it.printInnerNode(node, 0, maxDumpDepth, "", true)
     }.toString()
 
     /**
@@ -35,54 +63,88 @@ open class SimpleTreePrinter<H : Any>(override val adapter: TreeLikeAdapter<H>) 
     /**
      * Controls how boundaries are rendered when [dumpSubtree]'s maxDumpDepth
      * is reached. When that is so, the [node] is the node whose children should
-     * be ignored. [level] and [hasFollower] can be used to [appendIndent]. This
+     * be ignored. The [prefix] can be used to [appendIndent]. This
      * method is responsible for the whole line, i.e. indent + content + line feed.
      *
      * Overriding with a noop effectively hides boundaries completely.
      */
-    protected open fun StringBuilder.appendBoundaryForNode(node: H, level: Int, hasFollower: List<Boolean>): StringBuilder {
+    protected open fun StringBuilder.appendBoundaryForNode(node: H, prefix: String, isTail: Boolean): StringBuilder {
+        appendIndent(childPrefix(prefix, isTail), true)
 
-        appendIndent(level + 1, hasFollower)
-
-        return adapter.getChildren(node).size.let {
+        return node.numChildren.let {
             if (it == 1) append("1 child is not shown")
             else append("$it children are not shown")
         }.append("\n")
     }
 
     /**
-     * Append the indent string. The [level] is the depth of the node. A [level]
-     * of zero means this is the root node. A position *i* of [hasFollower] is
-     * true if the *i*'s node on the path from the root to the current node has
-     * a next sibling. Simply put, if a position *i* is true, then the *i*'th
-     * repetition of the indent string should have a vertical bar to join a node
-     * to its siblings.
+     * Append the indent string. The [prefix] must be appended first. If [isTail],
+     * then this node is the last child of its parent.
      */
-    protected open fun StringBuilder.appendIndent(level: Int, hasFollower: List<Boolean>): StringBuilder {
-        for (i in 0 until level) {
-            if (hasFollower[i]) append("|  ") else append("   ")
+    protected fun StringBuilder.appendIndent(prefix: String, isTail: Boolean): StringBuilder =
+            append(prefix).append(if (isTail) str.tailFork else str.fork)
 
-        }
-        return append("+--")
-    }
-
+    private fun childPrefix(prefix: String, isTail: Boolean) = prefix + if (isTail) str.gap else str.verticalEdge
 
     private fun StringBuilder.printInnerNode(node: H,
                                              level: Int,
                                              maxLevel: Int,
-                                             hasFollower: Stack<Boolean>) {
-        appendIndent(level, hasFollower).appendSingleNode(node).append("\n")
+                                             prefix: String,
+                                             isTail: Boolean) {
 
-        if (level == maxLevel && node.numChildren > 0) {
-            appendBoundaryForNode(node, level, hasFollower)
+        append(prefix).append(if (isTail) str.tailFork else str.fork).appendSingleNode(node).append("\n")
+
+        if (level == maxLevel) {
+            if (node.numChildren > 0) {
+                appendBoundaryForNode(node, prefix, isTail)
+            }
         } else {
-            val n = node.numChildren
+            val n = node.numChildren - 1
+            val childPrefix = childPrefix(prefix, isTail)
             node.children.forEachIndexed { i, child ->
-                hasFollower.push(i < n - 1)
-                printInnerNode(child, level + 1, maxLevel, hasFollower)
-                hasFollower.pop()
+                printInnerNode(child, level + 1, maxLevel, childPrefix, i == n)
             }
         }
     }
 
+    companion object {
+
+        /**
+         * Outputs trees like
+         *
+         *    +-- LocalVariableDeclaration
+         *        +-- Type
+         *        |   +-- PrimitiveType
+         *        +-- VariableDeclarator
+         *            +-- VariableDeclaratorId
+         *            +-- VariableInitializer
+         *                +-- 1 child not shown
+         *
+         */
+        val AsciiStrings = StringConfig(
+                fork = "+-- ",
+                tailFork = "+-- ",
+                verticalEdge = "|   ",
+                gap = "    "
+        )
+
+        /**
+         * Outputs trees like:
+         *
+         *           └── LocalVariableDeclaration
+         *               ├── Type
+         *               │   └── PrimitiveType
+         *               └── VariableDeclarator
+         *                   ├── VariableDeclaratorId
+         *                   └── VariableInitializer
+         *                       └── 1 child not shown
+         *
+         */
+        val UnicodeStrings = StringConfig(
+                fork = "├── ",
+                tailFork = "└── ",
+                verticalEdge = "│   ",
+                gap = "    "
+        )
+    }
 }
