@@ -116,7 +116,7 @@ class KotlintestBeanTreePrinterTest : FunSpec({
 
         val tree = DummyTree.MultiChildNode(
                 DummyTree.PrefixNode("fo\n\no", DummyTree.StringLeaf("bar")),
-                DummyTree.StringLeaf("hendek!")
+                DummyTree.StringLeaf("\"hendek!\"")
         )
 
 
@@ -133,7 +133,7 @@ class KotlintestBeanTreePrinterTest : FunSpec({
                     }
                 }
                 child<StringLeaf> {
-                    it.myText shouldBe "hendek!"
+                    it.myText shouldBe "\"hendek!\""
                 }
             }
         """.trimIndent()

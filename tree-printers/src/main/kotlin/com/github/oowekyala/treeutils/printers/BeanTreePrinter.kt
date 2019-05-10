@@ -134,13 +134,14 @@ abstract class BeanTreePrinter<H : Any>(adapter: TreeLikeAdapter<H>) : DslStruct
         }
     }
 
-    private fun stringToKotlinString(string: String) = string.replace("\"".toRegex(), "\\\"")
-            // escape kt string interpolators
-            .replace("\\$(?=[a-zA-Z{])".toRegex(), "\\\${'\\$'}")
-            .let {
-                if (it.contains('\n')) "\"\"\"$it\"\"\""
-                else "\"$it\""
-            }
+    private fun stringToKotlinString(string: String) =
+            string.replace("\"", "\\\"")
+                    // escape kt string interpolators
+                    .replace("\\$(?=[a-zA-Z{])".toRegex(), "\\\${'\\$'}")
+                    .let {
+                        if (it.contains('\n')) "\"\"\"$it\"\"\""
+                        else "\"$it\""
+                    }
 
     private companion object {
 
